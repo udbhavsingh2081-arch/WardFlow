@@ -46,8 +46,15 @@ exports.logout = (req, res) => {
 
 exports.showProfile = async (req, res) => {
   try {
+    if (!req.session.user || !req.session.user._id) {
+      return res.redirect('/auth/login');
+    }
     const user = await User.findById(req.session.user._id).lean();
-    res.render('auth/profile', { title: 'My Profile', user });
+    if (!user) {
+      req.session.destroy(() => res.redirect('/auth/login'));
+      return;
+    }
+    res.render('auth/profile', { title: 'My Profile', activePage: 'profile', user });
   } catch (err) {
     req.session.flash = { error: 'Failed to load profile.' };
     res.redirect('/dashboard');

@@ -31,20 +31,20 @@
               <form method="POST" action="/auth/profile">
                 <div class="mb-3">
                   <label class="form-label">Full Name</label>
-                  <input type="text" class="form-control form-control-sm" name="name" value="<%= user.name %>" required />
+                  <input type="text" class="form-control form-control-sm" name="name" value="<%= (user && user.name) ? user.name : '' %>" required />
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Hospital Email Address</label>
-                  <input type="email" class="form-control form-control-sm bg-light" value="<%= user.email %>" disabled />
+                  <input type="email" class="form-control form-control-sm bg-light" value="<%= (user && user.email) ? user.email : '' %>" disabled />
                   <div class="form-text" style="font-size: 0.7rem;">Email managed by hospital administrator.</div>
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Contact Phone</label>
-                  <input type="tel" class="form-control form-control-sm" name="phone" value="<%= user.phone || '' %>" placeholder="+91 98765 43210" />
+                  <input type="tel" class="form-control form-control-sm" name="phone" value="<%= (user && user.phone) ? user.phone : '' %>" placeholder="+91 98765 43210" />
                 </div>
                 <div class="mb-4">
                   <label class="form-label">Assigned Role</label>
-                  <input type="text" class="form-control form-control-sm bg-light text-capitalize" value="<%= user.role.replace(/_/g,' ') %>" disabled />
+                  <input type="text" class="form-control form-control-sm bg-light text-capitalize" value="<%= (user && user.role) ? user.role.replace(/_/g,' ') : '' %>" disabled />
                 </div>
                 <button type="submit" class="btn btn-sm btn-primary">Save Profile Changes</button>
               </form>
