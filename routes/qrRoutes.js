@@ -6,6 +6,11 @@ const tenantAccess = require('../middleware/tenantAccess');
 const { requireMinRole } = require('../middleware/checkRole');
 
 const managerGuard = [isLoggedIn, tenantAccess, requireMinRole('operations_manager')];
+const staffGuard = [isLoggedIn, tenantAccess, requireMinRole('staff')];
+
+// Staff & Technician QR Scanner and Lookup
+router.get('/staff', staffGuard, qrController.showStaffQR);
+router.post('/staff/lookup', staffGuard, qrController.staffLookup);
 
 router.get('/assets', managerGuard, qrController.listAssets);
 router.get('/assets/new', managerGuard, qrController.showNewAsset);

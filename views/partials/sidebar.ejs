@@ -7,87 +7,161 @@
       <a href="/dashboard" class="text-white text-decoration-none fw-bold fs-6 d-block lh-1 mb-1">
         <%= appName %>
       </a>
-      <span class="text-muted" style="font-size: 0.6875rem; letter-spacing: 0.04em;">Operations Center</span>
+      <span class="text-muted" style="font-size: 0.6875rem; letter-spacing: 0.04em;">
+        <% if (!currentUser) { %>
+          Hospital Portal
+        <% } else if (currentUser.role === 'reporter') { %>
+          Service Portal
+        <% } else if (currentUser.role === 'staff') { %>
+          Worker Portal
+        <% } else { %>
+          Command Center
+        <% } %>
+      </span>
     </div>
   </div>
 
   <div class="flex-grow-1 py-2 overflow-y-auto">
-    <div class="sidebar-section">Operations</div>
-    <ul class="nav flex-column mb-2">
-      <li class="nav-item">
-        <a href="/dashboard" class="nav-link <%= locals.activePage === 'dashboard' ? 'active' : '' %>">
-          <i class="bi bi-speedometer2"></i>
-          <span>Dashboard</span>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="/tickets" class="nav-link <%= locals.activePage === 'tickets' ? 'active' : '' %>">
-          <i class="bi bi-ticket-perforated"></i>
-          <span>All Tickets</span>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="/tickets/new" class="nav-link <%= locals.activePage === 'new-ticket' ? 'active' : '' %>">
-          <i class="bi bi-plus-circle"></i>
-          <span>Report Issue</span>
-        </a>
-      </li>
-    </ul>
+    <% if (currentUser && currentUser.role === 'reporter') { %>
+      <div class="sidebar-section">My Requests</div>
+      <ul class="nav flex-column mb-2">
+        <li class="nav-item">
+          <a href="/dashboard" class="nav-link <%= locals.activePage === 'dashboard' ? 'active' : '' %>">
+            <i class="bi bi-card-checklist"></i>
+            <span>Track Requests</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/tickets/new" class="nav-link <%= locals.activePage === 'new-ticket' ? 'active' : '' %>">
+            <i class="bi bi-plus-circle"></i>
+            <span>Report Issue</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/auth/profile" class="nav-link <%= locals.activePage === 'profile' ? 'active' : '' %>">
+            <i class="bi bi-person-gear"></i>
+            <span>My Profile</span>
+          </a>
+        </li>
+      </ul>
+    <% } else if (currentUser && currentUser.role === 'staff') { %>
+      <div class="sidebar-section">Worker Operations</div>
+      <ul class="nav flex-column mb-2">
+        <li class="nav-item">
+          <a href="/dashboard" class="nav-link <%= locals.activePage === 'dashboard' ? 'active' : '' %>">
+            <i class="bi bi-list-task"></i>
+            <span>Task Queue</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/tickets?scope=history" class="nav-link <%= locals.activePage === 'task-history' ? 'active' : '' %>">
+            <i class="bi bi-clock-history"></i>
+            <span>Task History</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/qr/staff" class="nav-link <%= locals.activePage === 'qr-staff' ? 'active' : '' %>">
+            <i class="bi bi-qr-code-scan"></i>
+            <span>Staff QR Page</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/tickets/new" class="nav-link <%= locals.activePage === 'new-ticket' ? 'active' : '' %>">
+            <i class="bi bi-plus-circle"></i>
+            <span>Report Issue</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/auth/profile" class="nav-link <%= locals.activePage === 'profile' ? 'active' : '' %>">
+            <i class="bi bi-person-gear"></i>
+            <span>My Profile</span>
+          </a>
+        </li>
+      </ul>
+    <% } else { %>
+      <div class="sidebar-section">Operations</div>
+      <ul class="nav flex-column mb-2">
+        <li class="nav-item">
+          <a href="/dashboard" class="nav-link <%= locals.activePage === 'dashboard' ? 'active' : '' %>">
+            <i class="bi bi-speedometer2"></i>
+            <span>Overview</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/tickets" class="nav-link <%= locals.activePage === 'tickets' ? 'active' : '' %>">
+            <i class="bi bi-ticket-perforated"></i>
+            <span>All Requests</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/tickets/new" class="nav-link <%= locals.activePage === 'new-ticket' ? 'active' : '' %>">
+            <i class="bi bi-plus-circle"></i>
+            <span>Report Issue</span>
+          </a>
+        </li>
+      </ul>
 
-    <% if (currentUser && ['supervisor','operations_manager','hospital_admin','platform_admin'].includes(currentUser.role)) { %>
-    <div class="sidebar-section">Management</div>
-    <ul class="nav flex-column mb-2">
-      <li class="nav-item">
-        <a href="/analytics" class="nav-link <%= locals.activePage === 'analytics' ? 'active' : '' %>">
-          <i class="bi bi-bar-chart-line"></i>
-          <span>Analytics</span>
-        </a>
-      </li>
-      <% if (['operations_manager','hospital_admin','platform_admin'].includes(currentUser.role)) { %>
-      <li class="nav-item">
-        <a href="/qr/assets" class="nav-link <%= locals.activePage === 'qr' ? 'active' : '' %>">
-          <i class="bi bi-qr-code-scan"></i>
-          <span>QR Assets</span>
-        </a>
-      </li>
+      <% if (currentUser && ['supervisor','operations_manager','hospital_admin','platform_admin'].includes(currentUser.role)) { %>
+      <div class="sidebar-section">Analytics & AI</div>
+      <ul class="nav flex-column mb-2">
+        <li class="nav-item">
+          <a href="/analytics/ai" class="nav-link <%= locals.activePage === 'ai-analytics' ? 'active' : '' %>">
+            <i class="bi bi-cpu"></i>
+            <span>Gemini AI Analytics</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/analytics" class="nav-link <%= locals.activePage === 'analytics' ? 'active' : '' %>">
+            <i class="bi bi-bar-chart-line"></i>
+            <span>SLA & Bottlenecks</span>
+          </a>
+        </li>
+        <% if (['operations_manager','hospital_admin','platform_admin'].includes(currentUser.role)) { %>
+        <li class="nav-item">
+          <a href="/qr/assets" class="nav-link <%= locals.activePage === 'qr' ? 'active' : '' %>">
+            <i class="bi bi-qr-code-scan"></i>
+            <span>QR Assets</span>
+          </a>
+        </li>
+        <% } %>
+        <li class="nav-item">
+          <a href="/api/reports/export" class="nav-link">
+            <i class="bi bi-cloud-arrow-down"></i>
+            <span>Export CSV</span>
+          </a>
+        </li>
+      </ul>
       <% } %>
-      <li class="nav-item">
-        <a href="/api/reports/export" class="nav-link">
-          <i class="bi bi-cloud-arrow-down"></i>
-          <span>Export CSV</span>
-        </a>
-      </li>
-    </ul>
-    <% } %>
 
-    <% if (currentUser && ['hospital_admin','platform_admin'].includes(currentUser.role)) { %>
-    <div class="sidebar-section">Administration</div>
-    <ul class="nav flex-column mb-2">
-      <li class="nav-item">
-        <a href="/admin/departments" class="nav-link <%= locals.activePage === 'admin-dept' ? 'active' : '' %>">
-          <i class="bi bi-building"></i>
-          <span>Departments</span>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="/admin/users" class="nav-link <%= locals.activePage === 'admin-users' ? 'active' : '' %>">
-          <i class="bi bi-people"></i>
-          <span>User Accounts</span>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="/admin/sla" class="nav-link <%= locals.activePage === 'admin-sla' ? 'active' : '' %>">
-          <i class="bi bi-clock-history"></i>
-          <span>SLA Policies</span>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="/admin/settings" class="nav-link <%= locals.activePage === 'admin-settings' ? 'active' : '' %>">
-          <i class="bi bi-sliders2"></i>
-          <span>Hospital Settings</span>
-        </a>
-      </li>
-    </ul>
+      <% if (currentUser && ['hospital_admin','platform_admin'].includes(currentUser.role)) { %>
+      <div class="sidebar-section">Administration</div>
+      <ul class="nav flex-column mb-2">
+        <li class="nav-item">
+          <a href="/admin/departments" class="nav-link <%= locals.activePage === 'admin-dept' ? 'active' : '' %>">
+            <i class="bi bi-building"></i>
+            <span>Departments</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/admin/users" class="nav-link <%= locals.activePage === 'admin-users' ? 'active' : '' %>">
+            <i class="bi bi-people"></i>
+            <span>User Accounts</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/admin/sla" class="nav-link <%= locals.activePage === 'admin-sla' ? 'active' : '' %>">
+            <i class="bi bi-clock-history"></i>
+            <span>SLA Policies</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="/admin/settings" class="nav-link <%= locals.activePage === 'admin-settings' ? 'active' : '' %>">
+            <i class="bi bi-sliders2"></i>
+            <span>Hospital Settings</span>
+          </a>
+        </li>
+      </ul>
+      <% } %>
     <% } %>
   </div>
 

@@ -38,7 +38,7 @@ exports.uploadMiddleware = upload.array('attachments', 5);
 
 exports.listTickets = async (req, res) => {
   try {
-    const { status, priority, category, departmentId, search, page = 1 } = req.query;
+    const { status, priority, category, departmentId, search, scope, page = 1 } = req.query;
     const limit = 20;
     const skip = (parseInt(page) - 1) * limit;
 
@@ -53,12 +53,21 @@ exports.listTickets = async (req, res) => {
     ];
 
     const user = req.session.user;
-    if (user.role === 'staff' || user.role === 'reporter') {
-      query.$or = [
-        { reportedBy: user._id },
-        { assignedTo: user._id },
-      ];
-    } else if (user.role === 'supervisor' && user.departmentIds.length) {
+    if (user.role === 'reporter') {
+      // Normal User strictly sees only their own reported tickets
+      query.reportedBy = user._id;
+    } else if (user.role === 'staff') {
+      // Worker queue
+      if (scope === 'history') {
+        query.assignedTo = user._id;
+        query.status = { $in: ['resolved', 'closed'] };
+      } else {
+        query.assignedTo = user._id;
+        if (!status) {
+          query.status = { $in: ['assigned', 'in_progress', 'blocked'] };
+        }
+      }
+    } else if (user.role === 'supervisor' && user.departmentIds && user.departmentIds.length) {
       query.reportingDepartmentId = { $in: user.departmentIds };
     }
 
@@ -77,10 +86,11 @@ exports.listTickets = async (req, res) => {
     const totalPages = Math.ceil(total / limit);
 
     res.render('tickets/list', {
-      title: 'Tickets',
-      activePage: 'tickets',
+      title: user.role === 'reporter' ? 'My Requests' : (user.role === 'staff' ? (scope === 'history' ? 'Task History' : 'Task Queue') : 'All Tickets'),
+      activePage: user.role === 'staff' && scope === 'history' ? 'task-history' : 'tickets',
       tickets,
       departments,
+      scope: scope || 'active',
       filters: { status, priority, category, departmentId, search },
       pagination: { page: parseInt(page), totalPages, total },
       CATEGORIES, PRIORITIES, STATUSES,
@@ -180,6 +190,28 @@ exports.showTicket = async (req, res) => {
       return res.redirect('/tickets');
     }
 
+    const user = req.session.user;
+
+    // Strict Authorization check:
+    // Reporter can only view their own requests
+    if (user.role === 'reporter') {
+      const reporterId = ticket.reportedBy?._id ? ticket.reportedBy._id.toString() : ticket.reportedBy?.toString();
+      if (reporterId !== user._id.toString()) {
+        req.session.flash = { error: 'Access denied: You can only view your own submitted requests.' };
+        return res.status(403).render('errors/403', { title: 'Access Denied', message: 'You can only view your own submitted requests.' });
+      }
+    }
+
+    // Staff (Worker) can view tasks assigned to them or reported by them
+    if (user.role === 'staff') {
+      const assignedId = ticket.assignedTo?._id ? ticket.assignedTo._id.toString() : ticket.assignedTo?.toString();
+      const reporterId = ticket.reportedBy?._id ? ticket.reportedBy._id.toString() : ticket.reportedBy?.toString();
+      if (assignedId !== user._id.toString() && reporterId !== user._id.toString()) {
+        req.session.flash = { error: 'Access denied: You are not assigned to this task.' };
+        return res.status(403).render('errors/403', { title: 'Access Denied', message: 'You are not assigned to this task.' });
+      }
+    }
+
     const [activities, comments, staff, departments] = await Promise.all([
       TicketActivity.find({ ticketId: ticket._id }).sort({ createdAt: 1 }).lean(),
       Comment.find({ ticketId: ticket._id }).populate('authorId', 'name role').sort({ createdAt: 1 }).lean(),
@@ -187,9 +219,8 @@ exports.showTicket = async (req, res) => {
       Department.find({ hospitalId: req.hospitalId, isActive: true }).lean(),
     ]);
 
-    const user = req.session.user;
     const canAssign = ['supervisor', 'operations_manager', 'hospital_admin'].includes(user.role);
-    const canResolve = user._id === (ticket.assignedTo ? ticket.assignedTo._id.toString() : null) || canAssign;
+    const canResolve = (user.role === 'staff' && ticket.assignedTo && ticket.assignedTo._id.toString() === user._id.toString()) || canAssign;
     const canVerify = ['supervisor', 'operations_manager', 'hospital_admin'].includes(user.role);
     const canCancel = ['operations_manager', 'hospital_admin'].includes(user.role);
     const canReopen = canAssign;
@@ -216,6 +247,11 @@ exports.showTicket = async (req, res) => {
 };
 
 exports.showEdit = async (req, res) => {
+  const user = req.session.user;
+  if (!['supervisor', 'operations_manager', 'hospital_admin', 'platform_admin'].includes(user.role)) {
+    req.session.flash = { error: 'Access denied.' };
+    return res.status(403).render('errors/403', { title: 'Access Denied', message: 'You do not have permission to edit ticket configuration.' });
+  }
   try {
     const ticket = await Ticket.findOne({ _id: req.params.id, hospitalId: req.hospitalId }).lean();
     if (!ticket) { req.session.flash = { error: 'Ticket not found.' }; return res.redirect('/tickets'); }
@@ -285,9 +321,29 @@ exports.assignTicket = async (req, res) => {
 
 exports.updateStatus = async (req, res) => {
   const { status, blockedReason, blockedExpectedAt } = req.body;
+  const user = req.session.user;
+
+  if (user.role === 'reporter') {
+    req.session.flash = { error: 'Access denied: Normal users cannot change ticket status.' };
+    return res.status(403).render('errors/403', { title: 'Access Denied', message: 'Normal users cannot change ticket status.' });
+  }
+
   try {
     const ticket = await Ticket.findOne({ _id: req.params.id, hospitalId: req.hospitalId });
     if (!ticket) { req.session.flash = { error: 'Ticket not found.' }; return res.redirect('/tickets'); }
+
+    if (user.role === 'staff') {
+      const assignedId = ticket.assignedTo ? ticket.assignedTo.toString() : null;
+      if (assignedId !== user._id.toString()) {
+        req.session.flash = { error: 'Access denied: You can only update tasks assigned to you.' };
+        return res.status(403).render('errors/403', { title: 'Access Denied', message: 'You can only update tasks assigned to you.' });
+      }
+
+      if (['closed', 'cancelled'].includes(status)) {
+        req.session.flash = { error: 'Workers cannot directly close or cancel tasks. Please mark as resolved for supervisor verification.' };
+        return res.redirect(`/tickets/${req.params.id}`);
+      }
+    }
 
     const valid = ticketService.isValidTransition(ticket.status, status);
     if (!valid) {
@@ -309,7 +365,6 @@ exports.updateStatus = async (req, res) => {
     }
     await ticket.save();
 
-    const user = req.session.user;
     await TicketActivity.create({
       ticketId: ticket._id,
       hospitalId: req.hospitalId,
@@ -368,6 +423,13 @@ exports.addComment = async (req, res) => {
 
 exports.resolveTicket = async (req, res) => {
   const { resolutionSummary } = req.body;
+  const user = req.session.user;
+
+  if (user.role === 'reporter') {
+    req.session.flash = { error: 'Access denied: Normal users cannot resolve tickets.' };
+    return res.status(403).render('errors/403', { title: 'Access Denied', message: 'Normal users cannot resolve tickets.' });
+  }
+
   if (!resolutionSummary || !resolutionSummary.trim()) {
     req.session.flash = { error: 'Resolution summary is required.' };
     return res.redirect(`/tickets/${req.params.id}`);
@@ -376,12 +438,19 @@ exports.resolveTicket = async (req, res) => {
     const ticket = await Ticket.findOne({ _id: req.params.id, hospitalId: req.hospitalId });
     if (!ticket) { req.session.flash = { error: 'Ticket not found.' }; return res.redirect('/tickets'); }
 
+    if (user.role === 'staff') {
+      const assignedId = ticket.assignedTo ? ticket.assignedTo.toString() : null;
+      if (assignedId !== user._id.toString()) {
+        req.session.flash = { error: 'Access denied: You can only resolve tasks assigned to you.' };
+        return res.status(403).render('errors/403', { title: 'Access Denied', message: 'You can only resolve tasks assigned to you.' });
+      }
+    }
+
     if (!['assigned', 'in_progress', 'blocked'].includes(ticket.status)) {
       req.session.flash = { error: 'Ticket cannot be resolved from its current status.' };
       return res.redirect(`/tickets/${req.params.id}`);
     }
 
-    const user = req.session.user;
     ticket.status = 'resolved';
     ticket.resolvedAt = new Date();
     ticket.resolutionSummary = resolutionSummary.trim();
@@ -399,6 +468,7 @@ exports.resolveTicket = async (req, res) => {
     req.session.flash = { success: 'Ticket marked as resolved. Awaiting verification.' };
     res.redirect(`/tickets/${ticket._id}`);
   } catch (err) {
+    console.error('Resolve ticket error:', err);
     req.session.flash = { error: 'Failed to resolve ticket.' };
     res.redirect(`/tickets/${req.params.id}`);
   }

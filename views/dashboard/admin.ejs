@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Command Center — <%= appName %></title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/css/wardflow.css" />
+</head>
+<body>
+<div class="d-flex">
+  <%- include('../partials/sidebar') %>
+  <main class="wf-main flex-grow-1">
+    <%- include('../partials/topbar') %>
+    <div class="wf-content">
+      <%- include('../partials/flash') %>
+
+      <!-- Admin Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+          <h4 class="fw-bold mb-1">
+            <i class="bi bi-hospital text-primary me-2"></i>Operations Command Center
+          </h4>
+          <p class="text-muted small mb-0">Live hospital incident dispatch, SLA attainment tracking, and workload balancing.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <a href="/analytics/ai" class="btn btn-primary px-3 shadow-sm">
+            <i class="bi bi-stars me-2"></i>Gemini AI Analytics
+          </a>
+          <a href="/analytics" class="btn btn-outline-secondary px-3">
+            <i class="bi bi-bar-chart-line me-1"></i>SLA Reports
+          </a>
+          <a href="/tickets/new" class="btn btn-outline-primary px-3">
+            <i class="bi bi-plus-circle me-1"></i>Report Incident
+          </a>
+        </div>
+      </div>
+
+      <!-- KPI Metrics Grid -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-2">
+          <div class="wf-card p-3">
+            <div class="text-muted small fw-medium">Active Requests</div>
+            <div class="fs-4 fw-bold text-dark mt-1"><%= totalOpen %></div>
+            <div class="text-muted" style="font-size: 0.7rem;">Hospital-wide</div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="wf-card p-3 <%= unassignedCount > 0 ? 'border-warning border-opacity-50' : '' %>">
+            <div class="text-muted small fw-medium">Unassigned</div>
+            <div class="fs-4 fw-bold text-warning mt-1"><%= unassignedCount %></div>
+            <div class="text-muted" style="font-size: 0.7rem;">Awaiting triage</div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="wf-card p-3 <%= overdueCount > 0 ? 'border-danger border-opacity-50' : '' %>">
+            <div class="text-muted small fw-medium">Overdue SLA</div>
+            <div class="fs-4 fw-bold text-danger mt-1"><%= overdueCount %></div>
+            <div class="text-muted" style="font-size: 0.7rem;">Needs escalation</div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="wf-card p-3">
+            <div class="text-muted small fw-medium">Critical Priority</div>
+            <div class="fs-4 fw-bold text-danger mt-1"><%= criticalCount %></div>
+            <div class="text-muted" style="font-size: 0.7rem;">Immediate attention</div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="wf-card p-3">
+            <div class="text-muted small fw-medium">SLA Attainment</div>
+            <div class="fs-4 fw-bold text-success mt-1"><%= slaAttainment !== null ? slaAttainment + '%' : '—' %></div>
+            <div class="text-muted" style="font-size: 0.7rem;">Last 30 days</div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-2">
+          <div class="wf-card p-3">
+            <div class="text-muted small fw-medium">Avg Resolution</div>
+            <div class="fs-4 fw-bold text-primary mt-1"><%= avgResolutionHours !== null ? avgResolutionHours + 'h' : '—' %></div>
+            <div class="text-muted" style="font-size: 0.7rem;">Closed tickets</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <!-- Unassigned Ticket Triage -->
+        <div class="col-lg-7">
+          <div class="wf-card mb-4">
+            <div class="card-header bg-transparent py-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div>
+                <span class="fw-semibold text-warning"><i class="bi bi-inbox-fill me-2"></i>Unassigned Incidents Awaiting Worker Dispatch (<%= unassignedTickets ? unassignedTickets.length : 0 %>)</span>
+              </div>
+              <a href="/tickets?status=open" class="small text-decoration-none">View All Open</a>
+            </div>
+            <div class="card-body p-0">
+              <% if (!unassignedTickets || unassignedTickets.length === 0) { %>
+                <div class="text-center py-4 text-muted small">
+                  <i class="bi bi-check2-circle fs-3 d-block text-success mb-2"></i>
+                  Zero unassigned tickets. All incoming requests have been dispatched!
+                </div>
+              <% } else { %>
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="ps-3">Ticket</th>
+                        <th>Summary</th>
+                        <th>Priority</th>
+                        <th style="min-width: 170px;">Dispatch Worker</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% unassignedTickets.forEach(t => { %>
+                        <tr>
+                          <td class="ps-3">
+                            <a href="/tickets/<%= t._id %>" class="fw-bold text-decoration-none">
+                              <code><%= t.ticketNumber %></code>
+                            </a>
+                          </td>
+                          <td>
+                            <div class="fw-semibold text-truncate" style="max-width: 220px;"><%= t.title %></div>
+                            <div class="text-muted" style="font-size: 0.75rem;"><%= t.reportingDepartmentId?.name || '—' %> · <%= t.category %></div>
+                          </td>
+                          <td>
+                            <span class="badge badge-priority-<%= t.priority %> text-uppercase" style="font-size: 0.65rem;">
+                              <%= t.priority %>
+                            </span>
+                          </td>
+                          <td>
+                            <form method="POST" action="/tickets/<%= t._id %>/assign" class="d-flex gap-1">
+                              <select name="assignedTo" class="form-select form-select-sm py-0" style="font-size: 0.75rem;" required>
+                                <option value="" disabled selected>Select staff...</option>
+                                <% if (staffList && staffList.length > 0) { %>
+                                  <% staffList.forEach(s => { %>
+                                    <option value="<%= s._id %>"><%= s.name %> (<%= s.role.replace('_', ' ') %>)</option>
+                                  <% }) %>
+                                <% } %>
+                              </select>
+                              <button type="submit" class="btn btn-sm btn-primary py-0 px-2" title="Dispatch worker">
+                                Assign
+                              </button>
+                            </form>
+                          </td>
+                        </tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                </div>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Urgent SLA Alerts -->
+          <div class="wf-card">
+            <div class="card-header bg-transparent py-3 border-bottom d-flex justify-content-between align-items-center">
+              <span class="fw-semibold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Urgent SLA Deadlines & Escalations</span>
+              <a href="/tickets" class="small text-decoration-none">All Tickets</a>
+            </div>
+            <div class="card-body p-0">
+              <% if (!urgentTickets || urgentTickets.length === 0) { %>
+                <div class="text-center py-4 text-muted small">
+                  <i class="bi bi-shield-check fs-3 d-block text-success mb-2"></i>
+                  No active tickets are overdue or nearing SLA breach.
+                </div>
+              <% } else { %>
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="ps-3">Ticket</th>
+                        <th>Title</th>
+                        <th>Assignee</th>
+                        <th>Deadline</th>
+                        <th>Status</th>
+                        <th class="text-end pe-3">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% urgentTickets.forEach(t => { 
+                        const isOverdue = t.dueAt && new Date(t.dueAt) < new Date();
+                      %>
+                        <tr class="ticket-row" data-href="/tickets/<%= t._id %>">
+                          <td class="ps-3"><code><%= t.ticketNumber %></code></td>
+                          <td>
+                            <div class="fw-semibold text-truncate" style="max-width: 200px;"><%= t.title %></div>
+                          </td>
+                          <td class="text-muted"><%= t.assignedTo?.name || 'Unassigned' %></td>
+                          <td>
+                            <span class="<%= isOverdue ? 'text-danger fw-bold' : 'text-warning' %>">
+                              <%= t.dueAt ? new Date(t.dueAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '—' %>
+                              <% if (isOverdue) { %><i class="bi bi-clock-fill ms-1"></i><% } %>
+                            </span>
+                          </td>
+                          <td>
+                            <span class="badge badge-status-<%= t.status %>"><%= t.status %></span>
+                          </td>
+                          <td class="text-end pe-3">
+                            <a href="/tickets/<%= t._id %>" class="btn btn-sm btn-outline-danger py-0 px-2">Escalate</a>
+                          </td>
+                        </tr>
+                      <% }) %>
+                    </tbody>
+                  </table>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+
+        <!-- Available Staff & Workload Capacity -->
+        <div class="col-lg-5">
+          <div class="wf-card mb-4">
+            <div class="card-header bg-transparent py-3 border-bottom d-flex justify-content-between align-items-center">
+              <span class="fw-semibold"><i class="bi bi-people me-2 text-primary"></i>Worker Workload & Availability</span>
+              <a href="/admin/users" class="small text-decoration-none">Manage Staff</a>
+            </div>
+            <div class="card-body p-0">
+              <% if (!staffWorkloads || staffWorkloads.length === 0) { %>
+                <div class="text-center py-4 text-muted small">No active staff registered.</div>
+              <% } else { %>
+                <ul class="list-group list-group-flush small">
+                  <% staffWorkloads.forEach(s => { %>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-3 py-2">
+                      <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 0.75rem;">
+                          <%= s.name.charAt(0).toUpperCase() %>
+                        </div>
+                        <div>
+                          <div class="fw-semibold"><%= s.name %></div>
+                          <div class="text-muted" style="font-size: 0.7rem;"><%= s.role.replace('_', ' ') %></div>
+                        </div>
+                      </div>
+                      <div>
+                        <% if (s.activeCount === 0) { %>
+                          <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Available (0 tasks)</span>
+                        <% } else if (s.activeCount <= 3) { %>
+                          <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25"><%= s.activeCount %> active</span>
+                        <% } else { %>
+                          <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25"><%= s.activeCount %> active (Heavy)</span>
+                        <% } %>
+                      </div>
+                    </li>
+                  <% }) %>
+                </ul>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Quick AI Insights Promo -->
+          <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+            <div class="card-body p-4">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-stars fs-4 text-warning"></i>
+                <h6 class="fw-bold mb-0">Gemini AI Operational Analyst</h6>
+              </div>
+              <p class="small text-light opacity-75 mb-3">
+                Automated root-cause analytics, department bottleneck detection, and intelligent staffing rebalancing recommendations powered by backend Gemini AI.
+              </p>
+              <a href="/analytics/ai" class="btn btn-warning btn-sm text-dark fw-bold px-3">
+                <i class="bi bi-graph-up-arrow me-1"></i>Open AI Analytics
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/wardflow.js"></script>
+</body>
+</html>

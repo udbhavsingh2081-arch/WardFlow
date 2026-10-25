@@ -2,6 +2,7 @@ const Ticket = require('../models/Ticket');
 const Department = require('../models/Department');
 const SLAPolicy = require('../models/SLAPolicy');
 const TicketActivity = require('../models/TicketActivity');
+const geminiAnalyticsService = require('../services/geminiAnalyticsService');
 const { CATEGORIES, PRIORITIES, STATUSES } = require('../models/Ticket');
 const { differenceInHours, differenceInMinutes, subDays, startOfDay, endOfDay, format } = require('date-fns');
 
@@ -326,5 +327,26 @@ exports.showAnalytics = async (req, res) => {
     console.error('Analytics showAnalytics error:', err);
     req.session.flash = { error: 'Failed to load analytics dashboard.' };
     res.redirect('/dashboard');
+  }
+};
+
+exports.showAIAnalytics = async (req, res) => {
+  try {
+    const result = await geminiAnalyticsService.generateOperationalInsights(req.hospitalId);
+
+    res.render('analytics/ai', {
+      title: 'Gemini AI Operational Analytics',
+      activePage: 'ai-analytics',
+      data: result,
+      insights: result.insights,
+      aggregates: result.aggregates,
+      aiGenerated: result.aiGenerated,
+      modelUsed: result.modelUsed,
+      fallbackNotice: result.fallbackNotice || null,
+    });
+  } catch (err) {
+    console.error('showAIAnalytics error:', err);
+    req.session.flash = { error: 'Failed to generate AI analytics.' };
+    res.redirect('/analytics');
   }
 };

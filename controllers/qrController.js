@@ -484,3 +484,104 @@ exports.submitReport = async (req, res) => {
     });
   }
 };
+
+exports.showStaffQR = async (req, res) => {
+  try {
+    const user = req.session.user;
+    const Ticket = require('../models/Ticket');
+
+    const activeTasks = await Ticket.find({
+      hospitalId: req.hospitalId,
+      assignedTo: user._id,
+      status: { $in: ['assigned', 'in_progress', 'blocked'] },
+    })
+      .populate('reportingDepartmentId', 'name')
+      .sort({ dueAt: 1 })
+      .limit(10)
+      .lean();
+
+    const assets = await QRAsset.find({
+      hospitalId: req.hospitalId,
+      status: 'active',
+    })
+      .populate('departmentId', 'name')
+      .sort({ name: 1 })
+      .limit(20)
+      .lean();
+
+    res.render('qr/staff', {
+      title: 'Staff QR Portal',
+      activePage: 'qr-staff',
+      activeTasks,
+      assets,
+      searchedAsset: null,
+      searchQuery: '',
+    });
+  } catch (err) {
+    console.error('QR showStaffQR error:', err);
+    req.session.flash = { error: 'Failed to load Staff QR portal.' };
+    res.redirect('/dashboard');
+  }
+};
+
+exports.staffLookup = async (req, res) => {
+  try {
+    const { query } = req.body;
+    const user = req.session.user;
+    const Ticket = require('../models/Ticket');
+
+    const activeTasks = await Ticket.find({
+      hospitalId: req.hospitalId,
+      assignedTo: user._id,
+      status: { $in: ['assigned', 'in_progress', 'blocked'] },
+    })
+      .populate('reportingDepartmentId', 'name')
+      .sort({ dueAt: 1 })
+      .limit(10)
+      .lean();
+
+    const assets = await QRAsset.find({
+      hospitalId: req.hospitalId,
+      status: 'active',
+    })
+      .populate('departmentId', 'name')
+      .sort({ name: 1 })
+      .limit(20)
+      .lean();
+
+    if (!query || !query.trim()) {
+      return res.render('qr/staff', {
+        title: 'Staff QR Portal',
+        activePage: 'qr-staff',
+        activeTasks,
+        assets,
+        searchedAsset: null,
+        searchQuery: '',
+      });
+    }
+
+    const clean = query.trim();
+    const tokenHash = QRAsset.hashToken(clean);
+    const searchedAsset = await QRAsset.findOne({
+      hospitalId: req.hospitalId,
+      $or: [
+        { assetCode: clean.toUpperCase() },
+        { tokenHash },
+        { name: { $regex: clean, $options: 'i' } },
+      ],
+    }).populate('departmentId', 'name').lean();
+
+    res.render('qr/staff', {
+      title: 'Staff QR Portal',
+      activePage: 'qr-staff',
+      activeTasks,
+      assets,
+      searchedAsset,
+      searchQuery: clean,
+    });
+  } catch (err) {
+    console.error('QR staffLookup error:', err);
+    req.session.flash = { error: 'Lookup failed.' };
+    res.redirect('/qr/staff');
+  }
+};

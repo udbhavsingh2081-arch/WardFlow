@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %> — <%= appName %></title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/css/wardflow.css" />
+</head>
+<body>
+<div class="d-flex">
+  <%- include('../partials/sidebar') %>
+  <main class="wf-main flex-grow-1">
+    <%- include('../partials/topbar') %>
+    <div class="wf-content">
+      <%- include('../partials/flash') %>
+
+      <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+          <h5 class="fw-bold mb-1"><i class="bi bi-qr-code-scan text-primary me-2"></i>Staff QR Scanner & Diagnostics</h5>
+          <p class="text-muted small mb-0">Lookup equipment, verify locations on-site, and initiate immediate maintenance.</p>
+        </div>
+        <div>
+          <a href="/dashboard" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back to My Queue
+          </a>
+        </div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <!-- Asset Lookup & Scanner Card -->
+        <div class="col-lg-7">
+          <div class="wf-card mb-4">
+            <div class="card-header bg-transparent py-3 border-bottom d-flex align-items-center justify-content-between">
+              <span class="fw-semibold"><i class="bi bi-upc-scan me-2 text-primary"></i>Equipment / Asset Lookup</span>
+              <span class="badge bg-light text-dark border">Staff Authorized</span>
+            </div>
+            <div class="card-body p-4">
+              <form method="POST" action="/qr/staff/lookup" class="mb-3">
+                <div class="input-group mb-3">
+                  <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                  <input type="text" name="query" class="form-control border-start-0" placeholder="Enter Asset Code (e.g. EQ-01), name, or QR token..." value="<%= searchQuery || '' %>" required autofocus />
+                  <button class="btn btn-primary px-4" type="submit">Lookup</button>
+                </div>
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 text-muted small">
+                  <span><i class="bi bi-camera me-1"></i>Mobile tip: Use phone camera directly on sticker to jump to report</span>
+                  <% if (searchQuery) { %>
+                    <a href="/qr/staff" class="text-decoration-none">Clear search</a>
+                  <% } %>
+                </div>
+              </form>
+
+              <% if (searchedAsset) { %>
+                <div class="card border-primary bg-primary bg-opacity-10 mt-4">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <div>
+                        <span class="badge bg-primary text-uppercase mb-1"><%= searchedAsset.assetType %></span>
+                        <h5 class="fw-bold mb-0 text-primary"><%= searchedAsset.name %></h5>
+                        <div class="text-muted small">Code: <strong><%= searchedAsset.assetCode || '—' %></strong></div>
+                      </div>
+                      <span class="badge <%= searchedAsset.status === 'active' ? 'bg-success' : 'bg-secondary' %>">
+                        <%= searchedAsset.status %>
+                      </span>
+                    </div>
+                    <div class="row g-2 my-2 text-secondary small">
+                      <div class="col-6"><strong>Department:</strong> <%= searchedAsset.departmentId?.name || 'General' %></div>
+                      <div class="col-6"><strong>Location:</strong> <%= searchedAsset.location || 'Not specified' %></div>
+                    </div>
+                    <% if (searchedAsset.description) { %>
+                      <p class="small text-muted mb-3"><%= searchedAsset.description %></p>
+                    <% } %>
+                    <div class="d-flex gap-2 mt-3 pt-2 border-top">
+                      <a href="/qr/report/<%= searchedAsset.reportingToken %>" class="btn btn-primary btn-sm">
+                        <i class="bi bi-tools me-1"></i>Open Service Report
+                      </a>
+                      <a href="/tickets/new" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-file-earmark-plus me-1"></i>New Task
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              <% } else if (searchQuery) { %>
+                <div class="alert alert-warning mt-3 small mb-0">
+                  <i class="bi bi-exclamation-triangle me-2"></i>No equipment or facility found matching "<strong><%= searchQuery %></strong>". Check the code and try again.
+                </div>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Quick Asset Reference -->
+          <div class="wf-card">
+            <div class="card-header bg-transparent py-3 border-bottom">
+              <span class="fw-semibold"><i class="bi bi-buildings me-2 text-secondary"></i>Registered Hospital Assets (<%= assets ? assets.length : 0 %>)</span>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="ps-3">Name</th>
+                      <th>Code</th>
+                      <th>Department</th>
+                      <th>Location</th>
+                      <th class="text-end pe-3">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% if (!assets || assets.length === 0) { %>
+                      <tr><td colspan="5" class="text-center py-4 text-muted">No assets registered yet.</td></tr>
+                    <% } else { %>
+                      <% assets.forEach(a => { %>
+                        <tr>
+                          <td class="ps-3 fw-semibold"><%= a.name %></td>
+                          <td><code><%= a.assetCode || '—' %></code></td>
+                          <td><%= a.departmentId?.name || 'General' %></td>
+                          <td class="text-muted"><%= a.location || '—' %></td>
+                          <td class="text-end pe-3">
+                            <a href="/qr/report/<%= a.reportingToken %>" class="btn btn-sm btn-outline-primary py-0 px-2" title="Inspect / Report">
+                              Report
+                            </a>
+                          </td>
+                        </tr>
+                      <% }) %>
+                    <% } %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Worker's Active Queue Sidebar -->
+        <div class="col-lg-5">
+          <div class="wf-card">
+            <div class="card-header bg-transparent py-3 border-bottom d-flex justify-content-between align-items-center">
+              <span class="fw-semibold"><i class="bi bi-list-task me-2 text-primary"></i>My Assigned Tasks (<%= activeTasks ? activeTasks.length : 0 %>)</span>
+              <a href="/dashboard" class="small text-decoration-none">Full Queue</a>
+            </div>
+            <div class="card-body p-3">
+              <% if (!activeTasks || activeTasks.length === 0) { %>
+                <div class="text-center py-4 text-muted small">
+                  <i class="bi bi-check2-circle fs-3 d-block text-success mb-2"></i>
+                  All caught up! No active tasks assigned to you.
+                </div>
+              <% } else { %>
+                <div class="list-group list-group-flush">
+                  <% activeTasks.forEach(task => { %>
+                    <div class="list-group-item px-2 py-3 border-bottom">
+                      <div class="d-flex justify-content-between align-items-start mb-1">
+                        <span class="badge badge-priority-<%= task.priority %> text-uppercase" style="font-size: 0.65rem;">
+                          <%= task.priority %>
+                        </span>
+                        <span class="badge badge-status-<%= task.status %>" style="font-size: 0.65rem;">
+                          <%= task.status.replace('_', ' ') %>
+                        </span>
+                      </div>
+                      <a href="/tickets/<%= task._id %>" class="fw-semibold text-dark text-decoration-none d-block text-truncate mb-1">
+                        <%= task.title %>
+                      </a>
+                      <div class="d-flex justify-content-between align-items-center text-muted" style="font-size: 0.75rem;">
+                        <span><i class="bi bi-hash"></i><%= task.ticketNumber %></span>
+                        <span><%= task.reportingDepartmentId?.name || 'Department' %></span>
+                      </div>
+                      <div class="mt-2 pt-1 d-flex gap-2">
+                        <a href="/tickets/<%= task._id %>" class="btn btn-sm btn-primary py-0 px-2" style="font-size: 0.75rem;">
+                          Update Status
+                        </a>
+                      </div>
+                    </div>
+                  <% }) %>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

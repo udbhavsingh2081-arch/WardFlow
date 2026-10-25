@@ -1,6 +1,5 @@
 const User = require('../models/User');
 const Hospital = require('../models/Hospital');
-const { setFlash } = require('../utils/flashHelper');
 
 exports.showLogin = (req, res) => {
   if (req.session.user) return res.redirect('/dashboard');

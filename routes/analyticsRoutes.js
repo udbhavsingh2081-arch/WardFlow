@@ -7,6 +7,7 @@ const { requireMinRole } = require('../middleware/checkRole');
 
 router.use(isLoggedIn, tenantAccess, requireMinRole('supervisor'));
 
+router.get('/ai', analyticsController.showAIAnalytics);
 router.get('/', analyticsController.showAnalytics);
 
 module.exports = router;
