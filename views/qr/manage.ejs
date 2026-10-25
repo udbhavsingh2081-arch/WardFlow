@@ -76,10 +76,18 @@
                       <span class="badge bg-light text-dark border text-capitalize fw-normal"><%= a.assetType %></span>
                     </td>
                     <td class="small">
-                      <%= a.departmentId ? a.departmentId.name : '<span class="text-muted">Hospital-wide</span>' %>
+                      <% if (a.departmentId) { %>
+                        <%= a.departmentId.name %>
+                      <% } else { %>
+                        <span class="text-muted">Hospital-wide</span>
+                      <% } %>
                     </td>
                     <td class="small text-secondary">
-                      <%= a.location || '<span class="text-muted">—</span>' %>
+                      <% if (a.location) { %>
+                        <%= a.location %>
+                      <% } else { %>
+                        <span class="text-muted">—</span>
+                      <% } %>
                     </td>
                     <td>
                       <% if (a.isActive) { %>

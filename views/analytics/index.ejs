@@ -209,10 +209,18 @@
                       <% } %>
                     </td>
                     <td class="text-center">
-                      <%= dept.avgAssignHours !== null ? dept.avgAssignHours + ' hrs' : '<span class="text-muted small">—</span>' %>
+                      <% if (dept.avgAssignHours !== null) { %>
+                        <%= dept.avgAssignHours %> hrs
+                      <% } else { %>
+                        <span class="text-muted small">—</span>
+                      <% } %>
                     </td>
                     <td class="text-center pe-4">
-                      <%= dept.avgResolveHours !== null ? dept.avgResolveHours + ' hrs' : '<span class="text-muted small">—</span>' %>
+                      <% if (dept.avgResolveHours !== null) { %>
+                        <%= dept.avgResolveHours %> hrs
+                      <% } else { %>
+                        <span class="text-muted small">—</span>
+                      <% } %>
                     </td>
                   </tr>
                 <% }) %>
@@ -259,7 +267,11 @@
                         <% } %>
                       </td>
                       <td class="text-end pe-3">
-                        <%= cat.avgResolutionHours !== null ? cat.avgResolutionHours + 'h' : '<span class="text-muted small">—</span>' %>
+                        <% if (cat.avgResolutionHours !== null) { %>
+                          <%= cat.avgResolutionHours %>h
+                        <% } else { %>
+                          <span class="text-muted small">—</span>
+                        <% } %>
                       </td>
                     </tr>
                   <% }) %>

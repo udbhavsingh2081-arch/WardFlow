@@ -47,7 +47,13 @@
               <tr>
                 <td class="ps-4 fw-semibold text-dark"><%= d.name %></td>
                 <td><span class="badge bg-light text-secondary border font-monospace"><%= d.code || '—' %></span></td>
-                <td class="small"><%= d.supervisorId ? d.supervisorId.name : '<span class="text-muted">Unassigned</span>' %></td>
+                <td class="small">
+                  <% if (d.supervisorId) { %>
+                    <%= d.supervisorId.name %>
+                  <% } else { %>
+                    <span class="text-muted">Unassigned</span>
+                  <% } %>
+                </td>
                 <td class="small text-secondary"><%= d.defaultAssignedTeam || '—' %></td>
                 <td>
                   <span class="badge <%= d.isActive ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-light text-secondary border' %>">
