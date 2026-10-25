@@ -17,9 +17,29 @@ const qrReportLimiter = rateLimit({
 exports.qrReportLimiter = qrReportLimiter;
 
 
-function buildReportUrl(rawToken) {
-  const base = (env.app.url || 'http://localhost:3000').replace(/\/$/, '');
-  return `${base}/qr/report/${rawToken}`;
+function buildReportUrl(rawToken, req) {
+  const configuredUrl = process.env.APP_URL || process.env.APP_BASE_URL || (env.app && env.app.url);
+
+  // If configured with a real domain, use it
+  if (configuredUrl && !configuredUrl.includes('localhost') && !configuredUrl.includes('127.0.0.1')) {
+    return `${configuredUrl.replace(/\/$/, '')}/qr/report/${rawToken}`;
+  }
+
+  // If request is coming from a live domain (e.g. wardflow.pie.host)
+  if (req) {
+    const proto = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+    const host = req.get('host');
+    if (host && !host.includes('localhost') && !host.includes('127.0.0.1')) {
+      return `${proto}://${host}/qr/report/${rawToken}`;
+    }
+  }
+
+  // Fallback to production PieHost domain so localhost is never baked into printable stickers
+  const prodBase = (process.env.APP_URL && !process.env.APP_URL.includes('localhost'))
+    ? process.env.APP_URL
+    : 'https://wardflow.pie.host';
+
+  return `${prodBase.replace(/\/$/, '')}/qr/report/${rawToken}`;
 }
 
 function renderError(res, status, message, title = 'Error') {
@@ -228,7 +248,7 @@ exports.showQR = async (req, res) => {
       return res.redirect('/qr/assets');
     }
 
-    const reportUrl = buildReportUrl(asset.reportingToken);
+    const reportUrl = buildReportUrl(asset.reportingToken, req);
     const qrDataUrl = await QRCode.toDataURL(reportUrl, {
       errorCorrectionLevel: 'M',
       width: 320,

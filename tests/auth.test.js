@@ -76,4 +76,28 @@ describe('Authentication', () => {
     expect(res.statusCode).toBe(302);
     expect(res.headers.location).toContain('/auth/login');
   });
+
+  test('GET /auth/register returns registration page for normal users', async () => {
+    const res = await request(app).get('/auth/register');
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toContain('Reporter Registration');
+  });
+
+  test('POST /auth/register creates new reporter account and logs them in', async () => {
+    const res = await request(app)
+      .post('/auth/register')
+      .send({
+        name: 'Normal Person',
+        email: 'normal.person@test.com',
+        password: 'Password@123',
+        confirmPassword: 'Password@123',
+      })
+      .redirects(0);
+    expect(res.statusCode).toBe(302);
+    expect(res.headers.location).toBe('/dashboard');
+
+    const created = await User.findOne({ email: 'normal.person@test.com' });
+    expect(created).not.toBeNull();
+    expect(created.role).toBe('reporter');
+  });
 });
