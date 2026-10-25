@@ -1,4 +1,5 @@
 const { GoogleGenAI } = require('@google/genai');
+const mongoose = require('mongoose');
 const Ticket = require('../models/Ticket');
 const Department = require('../models/Department');
 const User = require('../models/User');
@@ -10,13 +11,17 @@ const { subDays, startOfDay } = require('date-fns');
  * Safe, tenant-isolated by hospitalId.
  */
 async function computeAggregates(hospitalId) {
+  const targetHospitalId = mongoose.isValidObjectId(hospitalId)
+    ? new mongoose.Types.ObjectId(hospitalId)
+    : hospitalId;
+
   const now = new Date();
   const fourteenDaysAgo = startOfDay(subDays(now, 14));
 
   const [departmentStats, categoryStats, workerStats, inflowStats, overallKpis] = await Promise.all([
     // 1. Department Breakdown & SLA Breaches
     Ticket.aggregate([
-      { $match: { hospitalId } },
+      { $match: { hospitalId: targetHospitalId } },
       {
         $group: {
           _id: '$reportingDepartmentId',
@@ -72,7 +77,7 @@ async function computeAggregates(hospitalId) {
 
     // 2. Category Distribution
     Ticket.aggregate([
-      { $match: { hospitalId } },
+      { $match: { hospitalId: targetHospitalId } },
       {
         $group: {
           _id: '$category',
@@ -86,7 +91,7 @@ async function computeAggregates(hospitalId) {
 
     // 3. Worker Workload Distribution
     Ticket.aggregate([
-      { $match: { hospitalId, assignedTo: { $ne: null } } },
+      { $match: { hospitalId: targetHospitalId, assignedTo: { $ne: null } } },
       {
         $group: {
           _id: '$assignedTo',
@@ -131,7 +136,7 @@ async function computeAggregates(hospitalId) {
 
     // 4. Inflow Trends (Daily over last 14 days)
     Ticket.aggregate([
-      { $match: { hospitalId, createdAt: { $gte: fourteenDaysAgo } } },
+      { $match: { hospitalId: targetHospitalId, createdAt: { $gte: fourteenDaysAgo } } },
       {
         $group: {
           _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
@@ -143,7 +148,7 @@ async function computeAggregates(hospitalId) {
 
     // 5. Overall Totals
     Ticket.aggregate([
-      { $match: { hospitalId } },
+      { $match: { hospitalId: targetHospitalId } },
       {
         $group: {
           _id: null,

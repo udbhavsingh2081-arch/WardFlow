@@ -350,3 +350,121 @@ exports.showAIAnalytics = async (req, res) => {
     res.redirect('/analytics');
   }
 };
+
+exports.explainAnalytics = async (req, res) => {
+  try {
+    const hospitalId = req.hospitalId;
+    const result = await geminiAnalyticsService.generateOperationalInsights(hospitalId);
+
+    const kpis = result.aggregates?.kpis || {};
+    const insights = result.insights || {};
+    const deptStats = result.aggregates?.departmentStats || [];
+    const catStats = result.aggregates?.categoryStats || [];
+    const workerStats = result.aggregates?.workerStats || [];
+
+    // Friendly plain-language headline
+    let headline = '';
+    let statusClass = 'success';
+    if (kpis.totalOverdue > 0) {
+      statusClass = 'danger';
+      headline = `Attention: ${kpis.totalOverdue} task is running past its resolution deadline.`;
+    } else if (kpis.unassigned > 0) {
+      statusClass = 'warning';
+      headline = `Notice: ${kpis.unassigned} reported request is awaiting staff assignment.`;
+    } else {
+      statusClass = 'success';
+      headline = `Operations are on schedule! All hospital tasks are within SLA targets.`;
+    }
+
+    // Friendly bullet points
+    const points = [];
+
+    // 1. Delays & Bottlenecks
+    if (kpis.totalOverdue > 0) {
+      const topOverdueDept = deptStats.find(d => d.overdueCount > 0);
+      const deptName = topOverdueDept ? topOverdueDept.departmentName : 'hospital units';
+      points.push({
+        type: 'danger',
+        badge: 'Overdue Issue',
+        icon: 'bi-exclamation-octagon-fill',
+        text: `${topOverdueDept?.overdueCount || kpis.totalOverdue} overdue issue in ${deptName} needs prompt resolution.`,
+      });
+    } else {
+      points.push({
+        type: 'success',
+        badge: 'Zero Overdue',
+        icon: 'bi-check-circle-fill',
+        text: 'All open tasks are within their target deadlines.',
+      });
+    }
+
+    // 2. Staffing & Assignment
+    if (kpis.unassigned > 0) {
+      points.push({
+        type: 'warning',
+        badge: 'Awaiting Staff',
+        icon: 'bi-person-exclamation',
+        text: `${kpis.unassigned} open request needs to be assigned to a technician or support staff member.`,
+      });
+    } else {
+      points.push({
+        type: 'success',
+        badge: 'Staff Assigned',
+        icon: 'bi-person-check-fill',
+        text: 'All active requests have an assigned technician.',
+      });
+    }
+
+    // 3. Top Demand Category
+    if (catStats.length > 0 && catStats[0].count > 0) {
+      const topCatName = catStats[0]._id ? (catStats[0]._id.charAt(0).toUpperCase() + catStats[0]._id.slice(1)) : 'General';
+      points.push({
+        type: 'info',
+        badge: 'Top Category',
+        icon: 'bi-tag-fill',
+        text: `${topCatName} has the highest volume with ${catStats[0].count} requests logged.`,
+      });
+    }
+
+    // 4. Staff workload note
+    if (workerStats.length > 0) {
+      const busyTech = workerStats[0];
+      if (busyTech && busyTech.activeCount > 0) {
+        points.push({
+          type: 'secondary',
+          badge: 'Worker Load',
+          icon: 'bi-people-fill',
+          text: `${busyTech.workerName} has ${busyTech.activeCount} active task(s) in progress.`,
+        });
+      }
+    }
+
+    // Action step
+    const nextStep = (insights.actionItems && insights.actionItems.length > 0)
+      ? insights.actionItems[0]
+      : (kpis.totalOverdue > 0 ? 'Prioritize overdue items in the escalation table below.' : 'Keep monitoring incoming requests.');
+
+    return res.json({
+      success: true,
+      aiGenerated: result.aiGenerated,
+      modelUsed: result.modelUsed,
+      statusClass,
+      headline,
+      summary: insights.executiveSummary || 'Hospital operations review completed.',
+      points,
+      nextStep,
+      stats: {
+        total: kpis.total || 0,
+        open: kpis.totalOpen || 0,
+        overdue: kpis.totalOverdue || 0,
+        unassigned: kpis.unassigned || 0,
+      },
+    });
+  } catch (err) {
+    console.error('explainAnalytics error:', err);
+    return res.status(500).json({
+      success: false,
+      error: 'Unable to generate AI summary at this time.',
+    });
+  }
+};

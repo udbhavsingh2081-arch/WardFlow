@@ -8,6 +8,8 @@ const { requireMinRole } = require('../middleware/checkRole');
 router.use(isLoggedIn, tenantAccess, requireMinRole('supervisor'));
 
 router.get('/ai', analyticsController.showAIAnalytics);
+router.get('/explain', analyticsController.explainAnalytics);
+router.post('/explain', analyticsController.explainAnalytics);
 router.get('/', analyticsController.showAnalytics);
 
 module.exports = router;

@@ -201,5 +201,24 @@ describe('Escalation & Bottleneck Analytics', () => {
     expect(res.text).toContain('Active Escalation Monitoring');
     expect(res.text).toContain('WF-2026-00002');
     expect(res.text).toContain('Level 2');
+    expect(res.text).toContain('deptWorkloadChart');
+    expect(res.text).toContain('categoryDistChart');
+    expect(res.text).toContain('btnAiExplain');
+  });
+
+  test('POST /analytics/explain returns plain-English summary with actionable points', async () => {
+    const res = await agentAdminA.post('/analytics/explain');
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body).toHaveProperty('headline');
+    expect(res.body).toHaveProperty('summary');
+    expect(Array.isArray(res.body.points)).toBe(true);
+    expect(res.body).toHaveProperty('nextStep');
+  });
+
+  test('GET /analytics/explain returns 200 JSON for supervisor/admin', async () => {
+    const res = await agentSupervisorA.get('/analytics/explain');
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
   });
 });
