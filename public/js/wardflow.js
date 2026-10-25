@@ -79,6 +79,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Mobile sidebar toggle
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('wfSidebar');
+  if (sidebarToggle && sidebar) {
+    sidebarToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sidebar.classList.toggle('show');
+    });
+    document.addEventListener('click', (e) => {
+      if (window.innerWidth < 992 && sidebar.classList.contains('show') && !sidebar.contains(e.target)) {
+        sidebar.classList.remove('show');
+      }
+    });
+  }
+
   // Ticket row click
   document.querySelectorAll('.ticket-row[data-href]').forEach(row => {
     row.addEventListener('click', () => { window.location = row.dataset.href; });

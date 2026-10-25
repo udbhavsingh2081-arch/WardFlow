@@ -2,12 +2,39 @@ const OpenAI = require('openai');
 const env = require('../config/environment');
 
 let client = null;
+let activeProvider = null;
 
 const getClient = () => {
-  if (!client && env.openai.apiKey && env.openai.apiKey !== 'sk-your-openai-api-key-here') {
-    client = new OpenAI({ apiKey: env.openai.apiKey });
+  if (client) return client;
+
+  // Priority 1: Google Gemini (via Google's official OpenAI-compatible endpoint)
+  if (env.gemini && env.gemini.apiKey && env.gemini.apiKey !== 'your_gemini_api_key_here') {
+    client = new OpenAI({
+      apiKey: env.gemini.apiKey,
+      baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+      timeout: 15000,
+    });
+    activeProvider = 'gemini';
+    return client;
   }
-  return client;
+
+  // Priority 2: OpenAI
+  if (env.openai && env.openai.apiKey && env.openai.apiKey !== 'sk-your-openai-api-key-here') {
+    const opts = { apiKey: env.openai.apiKey, timeout: 15000 };
+    if (env.openai.baseURL) opts.baseURL = env.openai.baseURL;
+    client = new OpenAI(opts);
+    activeProvider = 'openai';
+    return client;
+  }
+
+  return null;
+};
+
+const getModel = () => {
+  if (activeProvider === 'gemini') {
+    return env.gemini.model || 'gemini-1.5-flash';
+  }
+  return env.openai.model || 'gpt-4o-mini';
 };
 
 const TICKET_SUGGESTION_SCHEMA = {
@@ -26,7 +53,7 @@ const TICKET_SUGGESTION_SCHEMA = {
 
 exports.suggestTicket = async (description, { validCategories, validDepartments }) => {
   const ai = getClient();
-  if (!ai) throw new Error('OpenAI client not configured');
+  if (!ai) throw new Error('AI service not configured (set GEMINI_API_KEY or OPENAI_API_KEY)');
 
   const systemPrompt = `You are an AI assistant for a hospital operations management system called WardFlow.
 Your job is to analyze a reported issue description and extract structured ticket information.
@@ -40,7 +67,7 @@ Keep the title concise (under 100 characters).
 List any missing information that would help resolve the issue faster.`;
 
   const response = await ai.chat.completions.create({
-    model: env.openai.model || 'gpt-4o-mini',
+    model: getModel(),
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: `Issue description: ${description}` },
@@ -65,7 +92,7 @@ List any missing information that would help resolve the issue faster.`;
 
 exports.summarizeTickets = async (tickets, overdueTickets) => {
   const ai = getClient();
-  if (!ai) throw new Error('OpenAI client not configured');
+  if (!ai) throw new Error('AI service not configured (set GEMINI_API_KEY or OPENAI_API_KEY)');
 
   const ticketSummaryData = tickets.map(t => ({
     number: t.ticketNumber,
@@ -81,7 +108,7 @@ Highlight: critical issues, overdue tickets, patterns by category, and recommend
 Be concise and actionable. Use bullet points. Keep the summary under 300 words.`;
 
   const response = await ai.chat.completions.create({
-    model: env.openai.model || 'gpt-4o-mini',
+    model: getModel(),
     messages: [
       { role: 'system', content: systemPrompt },
       {

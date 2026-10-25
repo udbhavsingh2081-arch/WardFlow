@@ -7,9 +7,29 @@ const morgan = require('morgan');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const methodOverride = require('method-override');
+const mongoose = require('mongoose');
 const env = require('./config/environment');
 
 const app = express();
+
+// Trust reverse proxy (PieHost/PaaS/Nginx/Cloudflare) for secure cookies and rate limits
+if (env.trustProxy) {
+  app.set('trust proxy', env.trustProxy);
+}
+
+// Minimal safe health check endpoint for platform monitoring & load balancers
+app.get(['/health', '/api/health'], (req, res) => {
+  const dbState = mongoose.connection.readyState;
+  const states = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
+  const isHealthy = dbState === 1;
+
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'healthy' : 'degraded',
+    timestamp: new Date().toISOString(),
+    uptime: Math.floor(process.uptime()),
+    database: states[dbState] || 'unknown',
+  });
+});
 
 // Security
 app.use(helmet({

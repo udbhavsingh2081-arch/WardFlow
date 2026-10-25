@@ -8,90 +8,97 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <style>
     body {
-      background-color: #f3f4f6;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      color: #1f2937;
+      background-color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+      color: #0f172a;
+      -webkit-font-smoothing: antialiased;
     }
     .mobile-container {
-      max-width: 540px;
+      max-width: 520px;
       margin: 0 auto;
-      padding: 1rem 0.75rem 2rem;
+      padding: 1rem 0.85rem 3rem;
     }
     .header-card {
-      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+      background: #0f172a;
       color: #ffffff;
-      border-radius: 16px;
-      padding: 1.5rem 1.25rem;
+      border-radius: 12px;
+      padding: 1.25rem;
       margin-bottom: 1rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     }
     .form-card {
       background: #ffffff;
-      border-radius: 16px;
-      padding: 1.5rem;
+      border-radius: 12px;
+      padding: 1.25rem;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      border: 1px solid #e5e7eb;
+      border: 1px solid #e2e8f0;
     }
     .prefilled-badge {
-      background-color: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: #ffffff;
-      border-radius: 8px;
-      padding: 0.35rem 0.65rem;
-      font-size: 0.8rem;
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #cbd5e1;
+      border-radius: 6px;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.72rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
     }
     .btn-submit {
-      background-color: #2563eb;
+      background-color: #0f52ba;
       color: #ffffff;
       font-weight: 600;
-      border-radius: 12px;
-      padding: 0.85rem;
-      font-size: 1.05rem;
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-size: 0.95rem;
       border: none;
       width: 100%;
+      transition: background-color 0.15s ease;
     }
     .btn-submit:hover, .btn-submit:focus {
-      background-color: #1d4ed8;
+      background-color: #0d47a1;
       color: #ffffff;
     }
     .form-control, .form-select {
-      border-radius: 10px;
-      padding: 0.65rem 0.85rem;
-      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 0.55rem 0.75rem;
+      font-size: 0.875rem;
+      border: 1px solid #cbd5e1;
     }
     .form-control:focus, .form-select:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+      border-color: #0f52ba;
+      box-shadow: 0 0 0 3px rgba(15, 82, 186, 0.15);
     }
   </style>
 </head>
 <body>
 <div class="mobile-container">
-  <!-- Header Card with Prefilled Info -->
+  <!-- Asset Lockup Card -->
   <div class="header-card">
     <div class="d-flex align-items-center justify-content-between mb-2">
-      <span class="small opacity-75 fw-medium"><i class="bi bi-hospital me-1"></i><%= asset.hospitalId ? asset.hospitalId.name : 'WardFlow' %></span>
-      <span class="badge bg-white text-primary fw-semibold"><i class="bi bi-qr-code-scan me-1"></i>QR Report</span>
+      <span class="small text-secondary" style="color: #94a3b8 !important;"><i class="bi bi-hospital me-1"></i><%= asset.hospitalId ? asset.hospitalId.name : 'WardFlow Operations' %></span>
+      <span class="badge bg-primary text-white" style="font-size: 0.65rem;"><i class="bi bi-qr-code-scan me-1"></i>QR Report</span>
     </div>
-    <h4 class="fw-bold mb-1"><%= asset.name %></h4>
+    <h5 class="fw-bold mb-1 text-white"><%= asset.name %></h5>
     <% if (asset.location) { %>
-      <div class="small opacity-90 mb-2"><i class="bi bi-geo-alt me-1"></i><%= asset.location %></div>
+      <div class="small mb-2" style="color: #cbd5e1;"><i class="bi bi-geo-alt me-1 text-primary"></i><%= asset.location %></div>
     <% } %>
 
-    <div class="d-flex flex-wrap gap-2 mt-2">
+    <div class="d-flex flex-wrap gap-1 mt-2">
       <% if (asset.assetCode) { %>
-        <span class="prefilled-badge"><i class="bi bi-tag me-1"></i><%= asset.assetCode %></span>
+        <span class="prefilled-badge"><i class="bi bi-tag"></i><%= asset.assetCode %></span>
       <% } %>
       <% if (asset.departmentId) { %>
-        <span class="prefilled-badge"><i class="bi bi-building me-1"></i><%= asset.departmentId.name %></span>
+        <span class="prefilled-badge"><i class="bi bi-building"></i><%= asset.departmentId.name %></span>
       <% } %>
-      <span class="prefilled-badge text-capitalize"><i class="bi bi-info-circle me-1"></i><%= asset.assetType %></span>
+      <span class="prefilled-badge text-capitalize"><i class="bi bi-info-circle"></i><%= asset.assetType %></span>
     </div>
   </div>
 
   <% if (errors && errors.length > 0) { %>
-    <div class="alert alert-danger rounded-3 mb-3 py-2 small" role="alert">
-      <div class="fw-bold mb-1"><i class="bi bi-exclamation-circle me-1"></i>Please fix the following:</div>
+    <div class="alert alert-danger rounded-2 mb-3 py-2 px-3 small border border-danger-subtle" role="alert">
+      <div class="fw-bold mb-1"><i class="bi bi-exclamation-circle me-1"></i>Please correct the following:</div>
       <ul class="mb-0 ps-3">
         <% errors.forEach(e => { %>
           <li><%= e.msg %></li>
@@ -103,25 +110,25 @@
   <!-- Reporting Form -->
   <div class="form-card">
     <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
-      <i class="bi bi-pencil-square text-primary fs-5"></i>
+      <i class="bi bi-pencil-square text-primary"></i>
       <h6 class="fw-bold mb-0 text-dark">Issue Details</h6>
     </div>
 
     <form action="/qr/report/<%= token %>" method="POST" id="qrReportForm">
       <!-- Submitter Name -->
       <div class="mb-3">
-        <label for="reporterName" class="form-label fw-semibold small text-secondary">
+        <label for="reporterName" class="form-label small fw-semibold text-secondary">
           Your Name / Staff ID <span class="text-danger">*</span>
         </label>
         <input type="text" class="form-control" id="reporterName" name="reporterName" required maxlength="100"
-          placeholder="e.g. Nurse Priya / Staff John"
+          placeholder="e.g. Nurse Sunita / Technologist Rao"
           value="<%= formData.reporterName || '' %>">
-        <div class="form-text small">So maintenance staff can contact you if clarification is needed.</div>
+        <div class="form-text" style="font-size: 0.7rem;">Technician will follow up if clarification is needed.</div>
       </div>
 
       <!-- Category -->
       <div class="mb-3">
-        <label for="category" class="form-label fw-semibold small text-secondary">
+        <label for="category" class="form-label small fw-semibold text-secondary">
           Issue Category <span class="text-danger">*</span>
         </label>
         <select class="form-select text-capitalize" id="category" name="category" required>
@@ -134,55 +141,57 @@
         </select>
       </div>
 
-      <!-- Priority -->
+      <!-- Urgency -->
       <div class="mb-3">
-        <label for="priority" class="form-label fw-semibold small text-secondary">
-          Urgency / Priority
+        <label for="priority" class="form-label small fw-semibold text-secondary">
+          Urgency / Operational Impact
         </label>
         <select class="form-select text-capitalize" id="priority" name="priority">
-          <option value="low" <%= formData.priority === 'low' ? 'selected' : '' %>>Low — Non-urgent cosmetic/minor issue</option>
+          <option value="low" <%= formData.priority === 'low' ? 'selected' : '' %>>Low — Minor cosmetic or non-urgent issue</option>
           <option value="medium" <%= (!formData.priority || formData.priority === 'medium') ? 'selected' : '' %>>Medium — Needs attention today</option>
-          <option value="high" <%= formData.priority === 'high' ? 'selected' : '' %>>High — Impairs operational workflow</option>
-          <option value="critical" <%= formData.priority === 'critical' ? 'selected' : '' %>>Critical — Patient care or safety risk</option>
+          <option value="high" <%= formData.priority === 'high' ? 'selected' : '' %>>High — Workflow delayed / machine impaired</option>
+          <option value="critical" <%= formData.priority === 'critical' ? 'selected' : '' %>>Critical — Urgent safety or patient care risk</option>
         </select>
       </div>
 
-      <!-- Title / Summary -->
+      <!-- Problem Summary -->
       <div class="mb-3">
-        <label for="title" class="form-label fw-semibold small text-secondary">
+        <label for="title" class="form-label small fw-semibold text-secondary">
           Problem Summary <span class="text-danger">*</span>
         </label>
         <input type="text" class="form-control" id="title" name="title" required maxlength="200"
-          placeholder="e.g. Display flickering, Water pipe leaking under sink"
+          placeholder="e.g. Display screen flickering, Water dripping from valve"
           value="<%= formData.title || '' %>">
       </div>
 
       <!-- Description -->
       <div class="mb-4">
-        <label for="description" class="form-label fw-semibold small text-secondary">
+        <label for="description" class="form-label small fw-semibold text-secondary">
           Detailed Description <span class="text-danger">*</span>
         </label>
         <textarea class="form-control" id="description" name="description" rows="4" required maxlength="2000"
-          placeholder="Describe what happened, any error codes, or exact location details..."><%= formData.description || '' %></textarea>
-        <div class="form-text small">Do not include private patient health records or medical charts.</div>
+          placeholder="Describe symptoms, error codes on display, or immediate operational impact..."><%= formData.description || '' %></textarea>
+        <div class="form-text text-secondary" style="font-size: 0.7rem;">Never include patient personal health records or clinical diagnoses.</div>
       </div>
 
       <button type="submit" class="btn btn-submit" id="submitBtn">
-        <i class="bi bi-send-check me-2"></i>Submit Issue Report
+        <i class="bi bi-send me-1"></i>Submit Issue Report
       </button>
     </form>
   </div>
 
-  <div class="text-center text-muted small mt-4">
-    <i class="bi bi-shield-check me-1 text-success"></i>WardFlow Hospital Operations &copy; 2026
+  <div class="text-center text-muted mt-3" style="font-size: 0.72rem;">
+    <i class="bi bi-shield-check me-1 text-success"></i>WardFlow Enterprise Healthcare Operations
   </div>
 </div>
 
 <script>
-  document.getElementById('qrReportForm').addEventListener('submit', function() {
+  document.getElementById('qrReportForm')?.addEventListener('submit', function() {
     const btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
+    }
   });
 </script>
 </body>

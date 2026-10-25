@@ -8,21 +8,22 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <style>
     body {
-      background-color: #f8f9fa;
+      background-color: #f8fafc;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 1rem;
+      padding: 1.25rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     .card-invalid {
       max-width: 440px;
       width: 100%;
-      border-radius: 16px;
-      border: none;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
       background: #ffffff;
-      padding: 2.5rem 1.5rem;
+      padding: 2.5rem 1.75rem;
       text-align: center;
     }
   </style>
@@ -30,15 +31,15 @@
 <body>
 <div class="card-invalid">
   <div class="mb-3">
-    <div class="rounded-circle bg-danger-subtle text-danger d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px;">
-      <i class="bi bi-qr-code fs-1"></i>
+    <div class="rounded-circle bg-danger-subtle text-danger d-inline-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+      <i class="bi bi-slash-circle fs-2"></i>
     </div>
   </div>
-  <h4 class="fw-bold text-dark mb-2"><%= title %></h4>
-  <p class="text-muted mb-4"><%= message %></p>
+  <h5 class="fw-bold text-dark mb-2"><%= title %></h5>
+  <p class="text-secondary small mb-4"><%= message %></p>
   <div class="d-grid gap-2">
-    <a href="/auth/login" class="btn btn-outline-primary">
-      <i class="bi bi-box-arrow-in-right me-1"></i> Staff Login to WardFlow
+    <a href="/auth/login" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-box-arrow-in-right me-1"></i>Staff Login to WardFlow
     </a>
   </div>
 </div>

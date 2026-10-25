@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title><%= ticket.ticketNumber %> — <%= appName %></title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
@@ -12,268 +13,381 @@
   <%- include('../partials/sidebar') %>
   <main class="wf-main flex-grow-1">
     <%- include('../partials/topbar') %>
-    <%- include('../partials/flash') %>
+    <div class="wf-content">
+      <%- include('../partials/flash') %>
 
-    <!-- Header bar -->
-    <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
-      <div>
-        <h5 class="mb-1 fw-bold"><%= ticket.ticketNumber %> — <%= ticket.title %></h5>
-        <div class="d-flex gap-2 flex-wrap align-items-center">
-          <span class="badge badge-priority-<%= ticket.priority %> text-uppercase"><%= ticket.priority %></span>
-          <span class="badge badge-status-<%= ticket.status %>"><%= ticket.status.replace('_',' ') %></span>
-          <span class="badge bg-secondary text-capitalize"><%= ticket.category %></span>
+      <!-- Top Command Bar -->
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 pb-3 border-bottom">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <a href="/tickets" class="btn btn-sm btn-outline-secondary py-1 px-2" title="Back to register">
+            <i class="bi bi-arrow-left"></i>
+          </a>
+          <span class="ticket-code fs-6"><%= ticket.ticketNumber %></span>
+          <div class="vr mx-1 my-1"></div>
+          <span class="wf-badge badge-status-<%= ticket.status %>">
+            <span class="status-dot"></span>
+            <%= ticket.status.replace(/_/g, ' ') %>
+          </span>
+          <span class="wf-badge badge-priority-<%= ticket.priority %> text-uppercase">
+            <span class="status-dot"></span>
+            <%= ticket.priority %>
+          </span>
+          <span class="badge bg-light text-secondary border small text-capitalize fw-normal">
+            <%= ticket.category %>
+          </span>
           <% if (ticket.dueAt && new Date(ticket.dueAt) < new Date() && !['closed','cancelled','resolved'].includes(ticket.status)) { %>
-          <span class="badge bg-danger overdue-indicator"><i class="bi bi-alarm me-1"></i>OVERDUE</span>
+          <span class="badge badge-overdue border">
+            <i class="bi bi-alarm me-1"></i>OVERDUE
+          </span>
+          <% } %>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <% if (canVerify && ticket.status === 'resolved') { %>
+          <form method="POST" action="/tickets/<%= ticket._id %>/verify" class="d-inline">
+            <button type="submit" class="btn btn-sm btn-success" data-confirm="Confirm independent verification and close ticket?">
+              <i class="bi bi-check2-circle me-1"></i>Verify &amp; Close
+            </button>
+          </form>
+          <% } %>
+
+          <% if (canReopen && ['resolved','closed'].includes(ticket.status)) { %>
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#reopenModal">
+            <i class="bi bi-arrow-counterclockwise me-1"></i>Reopen
+          </button>
+          <% } %>
+
+          <% if (canCancel && !['closed','cancelled'].includes(ticket.status)) { %>
+          <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+            <i class="bi bi-x-circle me-1"></i>Cancel
+          </button>
           <% } %>
         </div>
       </div>
-      <div class="d-flex gap-2 flex-wrap">
-        <a href="/tickets" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back</a>
-        <% if (canVerify && ticket.status === 'resolved') { %>
-        <form method="POST" action="/tickets/<%= ticket._id %>/verify">
-          <button type="submit" class="btn btn-sm btn-success" data-confirm="Confirm independent verification and close ticket?"><i class="bi bi-check-circle me-1"></i>Verify & Close</button>
-        </form>
-        <% } %>
-        <% if (canReopen && ['resolved','closed'].includes(ticket.status)) { %>
-        <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#reopenModal"><i class="bi bi-arrow-counterclockwise me-1"></i>Reopen</button>
-        <% } %>
-        <% if (canCancel && !['closed','cancelled'].includes(ticket.status)) { %>
-        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal"><i class="bi bi-x-circle me-1"></i>Cancel</button>
-        <% } %>
-      </div>
-    </div>
 
-    <div class="row g-4">
-      <!-- Main Content Column -->
-      <div class="col-md-8">
-        <!-- Description -->
-        <div class="card border-0 shadow-sm mb-3">
-          <div class="card-header fw-semibold bg-white"><i class="bi bi-file-text me-2 text-primary"></i>Problem Description</div>
-          <div class="card-body">
-            <p class="mb-0" style="white-space: pre-wrap;"><%= ticket.description %></p>
-          </div>
-        </div>
+      <!-- Main Layout: Left Work Area + Right Inspector -->
+      <div class="row g-4">
+        <!-- Left: Work Area (65%) -->
+        <div class="col-lg-8">
+          <!-- Ticket Header & Description Card -->
+          <div class="wf-card mb-4">
+            <div class="wf-card-body">
+              <h4 class="fw-bold text-dark mb-3"><%= ticket.title %></h4>
+              
+              <div class="meta-label mb-2">Description</div>
+              <div class="text-secondary mb-3" style="white-space: pre-wrap; font-size: 0.875rem; line-height: 1.6;"><%= ticket.description %></div>
 
-        <!-- Resolution info banner if resolved or closed -->
-        <% if (ticket.resolutionSummary) { %>
-        <div class="card border-0 shadow-sm mb-3 border-success border-opacity-25 bg-success bg-opacity-10">
-          <div class="card-header fw-semibold bg-transparent text-success"><i class="bi bi-check-circle-fill me-2"></i>Resolution Summary</div>
-          <div class="card-body">
-            <p class="mb-0"><%= ticket.resolutionSummary %></p>
-            <% if (ticket.resolvedAt) { %>
-            <div class="mt-2 text-muted small"><i class="bi bi-clock me-1"></i>Resolved at: <%= new Date(ticket.resolvedAt).toLocaleString('en-IN') %></div>
-            <% } %>
-          </div>
-        </div>
-        <% } %>
-
-        <!-- Status Transition Controls -->
-        <% if (!['closed','cancelled'].includes(ticket.status)) { %>
-        <div class="card border-0 shadow-sm mb-3">
-          <div class="card-header fw-semibold bg-white"><i class="bi bi-sliders me-2 text-primary"></i>Update Status</div>
-          <div class="card-body">
-            <form method="POST" action="/tickets/<%= ticket._id %>/status" class="row g-2 align-items-end">
-              <div class="col-md-4">
-                <label class="form-label small text-muted">Change state to</label>
-                <select class="form-select form-select-sm" name="status" id="statusSelect">
-                  <% const transitions = { open:['assigned','cancelled'], assigned:['in_progress','blocked','resolved','cancelled'], in_progress:['blocked','resolved','cancelled'], blocked:['in_progress','resolved','cancelled'], resolved:['closed'], closed:[], cancelled:[] }; %>
-                  <% (transitions[ticket.status] || []).forEach(s => { %>
-                  <option value="<%= s %>"><%= s.replace('_',' ') %></option>
+              <!-- Attachments if any -->
+              <% if (ticket.attachments && ticket.attachments.length > 0) { %>
+              <div class="pt-3 border-top">
+                <div class="meta-label mb-2"><i class="bi bi-paperclip me-1"></i>Attachments (<%= ticket.attachments.length %>)</div>
+                <div class="d-flex flex-wrap gap-2">
+                  <% ticket.attachments.forEach(a => { %>
+                  <div class="d-flex align-items-center gap-2 p-2 rounded border bg-light small">
+                    <i class="bi bi-file-earmark-text text-primary"></i>
+                    <span class="fw-medium text-dark text-truncate" style="max-width: 200px;"><%= a.originalName %></span>
+                    <span class="text-muted" style="font-size: 0.7rem;"><%= Math.round(a.size / 1024) %> KB</span>
+                  </div>
                   <% }) %>
-                </select>
-              </div>
-              <div class="col-md-5" id="blockedReasonDiv" style="display:none">
-                <label class="form-label small text-muted">Blocker Reason (Required)</label>
-                <input type="text" class="form-control form-control-sm" name="blockedReason" placeholder="Waiting for replacement parts, vendor..." />
-              </div>
-              <div class="col-auto">
-                <button type="submit" class="btn btn-sm btn-primary">Update Status</button>
-              </div>
-            </form>
-          </div>
-        </div>
-        <% } %>
-
-        <!-- Resolve Action Box -->
-        <% if (canResolve && ['assigned','in_progress','blocked'].includes(ticket.status)) { %>
-        <div class="card border-0 shadow-sm mb-3">
-          <div class="card-header fw-semibold bg-white"><i class="bi bi-check2-all me-2 text-success"></i>Submit Resolution (Mark as Resolved)</div>
-          <div class="card-body">
-            <form method="POST" action="/tickets/<%= ticket._id %>/resolve">
-              <label class="form-label small">Resolution notes & corrective action taken <span class="text-danger">*</span></label>
-              <textarea class="form-control mb-2" name="resolutionSummary" rows="3" required placeholder="Describe repairs done, components replaced, tests performed..."></textarea>
-              <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-check-circle me-1"></i>Mark Resolved</button>
-            </form>
-          </div>
-        </div>
-        <% } %>
-
-        <!-- Comments and Updates -->
-        <div class="card border-0 shadow-sm mb-3">
-          <div class="card-header fw-semibold bg-white d-flex justify-content-between align-items-center">
-            <span><i class="bi bi-chat-dots me-2 text-primary"></i>Operational Notes & Comments</span>
-            <span class="badge bg-secondary"><%= comments.length %></span>
-          </div>
-          <div class="card-body">
-            <% if (comments.length === 0) { %>
-            <p class="text-muted small mb-3">No comments recorded yet.</p>
-            <% } %>
-            <% comments.forEach(c => { %>
-            <div class="mb-3 p-3 rounded <%= c.isInternal ? 'bg-warning bg-opacity-10 border border-warning border-opacity-25' : 'bg-light' %>">
-              <div class="d-flex justify-content-between mb-1">
-                <span class="fw-semibold small"><%= c.authorId ? c.authorId.name : 'Unknown' %> <span class="text-muted">(<%= c.authorId ? c.authorId.role.replace('_',' ') : '' %>)</span></span>
-                <span class="text-muted small"><%= new Date(c.createdAt).toLocaleString('en-IN') %><% if (c.isInternal) { %> <span class="badge bg-warning text-dark ms-1">Internal Note</span><% } %></span>
-              </div>
-              <p class="mb-0 small"><%= c.content %></p>
-            </div>
-            <% }) %>
-
-            <hr />
-            <form method="POST" action="/tickets/<%= ticket._id %>/comments">
-              <div class="mb-2">
-                <textarea class="form-control form-control-sm" name="content" rows="2" placeholder="Add progress notes, findings, or instructions..." required></textarea>
-              </div>
-              <div class="d-flex justify-content-between align-items-center">
-                <div class="form-check form-check-sm">
-                  <input type="checkbox" class="form-check-input" name="isInternal" id="isInternal" />
-                  <label class="form-check-label small text-muted" for="isInternal">Internal supervisor note (hidden from general reporters)</label>
                 </div>
-                <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-send me-1"></i>Post Comment</button>
               </div>
-            </form>
-          </div>
-        </div>
-
-        <!-- Activity History -->
-        <div class="card border-0 shadow-sm">
-          <div class="card-header fw-semibold bg-white"><i class="bi bi-clock-history me-2 text-primary"></i>Timestamped Audit Trail</div>
-          <div class="card-body">
-            <% activities.forEach(a => { %>
-            <div class="activity-item">
-              <div class="d-flex justify-content-between">
-                <span class="small fw-semibold"><%= a.actorName || 'System Automated' %></span>
-                <span class="activity-time"><%= new Date(a.createdAt).toLocaleString('en-IN') %></span>
-              </div>
-              <div class="small text-muted"><%= a.description %></div>
+              <% } %>
             </div>
-            <% }) %>
+          </div>
+
+          <!-- Resolution Summary Banner if resolved/closed -->
+          <% if (ticket.resolutionSummary) { %>
+          <div class="wf-card mb-4 border-success border-opacity-50" style="background: #f0fdf4;">
+            <div class="wf-card-body">
+              <div class="d-flex align-items-center gap-2 text-success fw-bold small mb-2">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Resolution Documentation</span>
+              </div>
+              <p class="mb-2 text-dark small" style="white-space: pre-wrap;"><%= ticket.resolutionSummary %></p>
+              <div class="d-flex align-items-center gap-3 text-muted" style="font-size: 0.75rem;">
+                <% if (ticket.resolvedAt) { %>
+                <span><i class="bi bi-clock me-1"></i>Resolved: <%= new Date(ticket.resolvedAt).toLocaleString('en-IN') %></span>
+                <% } %>
+                <% if (ticket.verifiedBy) { %>
+                <span><i class="bi bi-shield-check text-success me-1"></i>Verified by: <%= ticket.verifiedBy.name %></span>
+                <% } %>
+              </div>
+            </div>
+          </div>
+          <% } %>
+
+          <!-- Resolve Action Box (when assigned/in_progress/blocked) -->
+          <% if (canResolve && ['assigned','in_progress','blocked'].includes(ticket.status)) { %>
+          <div class="wf-card mb-4 border-primary border-opacity-50">
+            <div class="wf-card-header bg-primary-subtle border-primary border-opacity-25">
+              <span class="fw-semibold small text-primary"><i class="bi bi-check2-all me-1"></i>Complete &amp; Submit Resolution</span>
+            </div>
+            <div class="wf-card-body">
+              <form method="POST" action="/tickets/<%= ticket._id %>/resolve">
+                <div class="mb-2">
+                  <label class="form-label">Corrective action taken &amp; components replaced <span class="text-danger">*</span></label>
+                  <textarea class="form-control form-control-sm" name="resolutionSummary" rows="3" required placeholder="Describe technical diagnosis, parts replaced, functional tests completed..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary">
+                  <i class="bi bi-check-circle me-1"></i>Mark as Resolved
+                </button>
+              </form>
+            </div>
+          </div>
+          <% } %>
+
+          <!-- Communication & Operational Notes -->
+          <div class="wf-card mb-4">
+            <div class="wf-card-header">
+              <span class="fw-semibold small"><i class="bi bi-chat-left-text me-2 text-primary"></i>Operational Notes &amp; Comments (<%= comments.length %>)</span>
+            </div>
+            <div class="wf-card-body">
+              <!-- Comments List -->
+              <% if (!comments || comments.length === 0) { %>
+              <div class="text-muted small text-center py-3">No operational comments posted yet.</div>
+              <% } else { %>
+              <div class="d-flex flex-column gap-3 mb-4">
+                <% comments.forEach(c => { %>
+                <div class="p-3 rounded-2 border <%= c.isInternal ? 'bg-warning-subtle border-warning-subtle' : 'bg-light' %>">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="fw-semibold text-dark small"><%= c.authorId ? c.authorId.name : 'Unknown User' %></span>
+                      <% if (c.authorId) { %>
+                      <span class="badge bg-light text-secondary border" style="font-size: 0.65rem;"><%= c.authorId.role.replace(/_/g, ' ') %></span>
+                      <% } %>
+                      <% if (c.isInternal) { %>
+                      <span class="badge bg-warning text-dark border" style="font-size: 0.65rem;">Internal Note</span>
+                      <% } %>
+                    </div>
+                    <span class="text-muted" style="font-size: 0.6875rem;"><%= new Date(c.createdAt).toLocaleString('en-IN') %></span>
+                  </div>
+                  <div class="text-secondary small" style="white-space: pre-wrap;"><%= c.content %></div>
+                </div>
+                <% }) %>
+              </div>
+              <% } %>
+
+              <!-- New Comment Form -->
+              <form method="POST" action="/tickets/<%= ticket._id %>/comments" class="pt-3 border-top">
+                <div class="mb-2">
+                  <textarea class="form-control form-control-sm" name="content" rows="2" placeholder="Post a technical update, findings, or instructions..." required></textarea>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="form-check form-check-sm mb-0">
+                    <input type="checkbox" class="form-check-input" name="isInternal" id="isInternal" />
+                    <label class="form-check-label small text-muted" for="isInternal">Internal supervisor note (staff-only)</label>
+                  </div>
+                  <button type="submit" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-send me-1"></i>Post Note
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Timestamped Audit Trail -->
+          <div class="wf-card">
+            <div class="wf-card-header">
+              <span class="fw-semibold small"><i class="bi bi-clock-history me-2 text-secondary"></i>Audit Activity Timeline</span>
+            </div>
+            <div class="wf-card-body">
+              <div class="timeline-feed">
+                <% activities.forEach(a => { %>
+                <% const entryClass = 'entry-' + (a.type || 'status'); %>
+                <div class="timeline-entry <%= entryClass %>">
+                  <div class="timeline-dot"></div>
+                  <div class="timeline-content">
+                    <div class="timeline-header">
+                      <span class="timeline-actor"><%= a.actorName || 'Automated System' %></span>
+                      <span class="timeline-time"><%= new Date(a.createdAt).toLocaleString('en-IN') %></span>
+                    </div>
+                    <div class="text-secondary" style="font-size: 0.75rem;"><%= a.description %></div>
+                  </div>
+                </div>
+                <% }) %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Inspector Column (35%) -->
+        <div class="col-lg-4">
+          <!-- Status Controls -->
+          <% if (!['closed','cancelled'].includes(ticket.status)) { %>
+          <div class="wf-card mb-3">
+            <div class="wf-card-header">
+              <span class="fw-semibold small"><i class="bi bi-sliders me-2 text-primary"></i>Workflow State</span>
+            </div>
+            <div class="wf-card-body">
+              <form method="POST" action="/tickets/<%= ticket._id %>/status">
+                <div class="mb-2">
+                  <label class="form-label">Transition State</label>
+                  <select class="form-select form-select-sm" name="status" id="statusSelect">
+                    <% const transitions = { open:['assigned','cancelled'], assigned:['in_progress','blocked','resolved','cancelled'], in_progress:['blocked','resolved','cancelled'], blocked:['in_progress','resolved','cancelled'], resolved:['closed'], closed:[], cancelled:[] }; %>
+                    <% (transitions[ticket.status] || []).forEach(s => { %>
+                    <option value="<%= s %>"><%= s.replace(/_/g, ' ') %></option>
+                    <% }) %>
+                  </select>
+                </div>
+                <div class="mb-2" id="blockedReasonDiv" style="display:none">
+                  <label class="form-label">Blocker Reason <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control form-control-sm" name="blockedReason" placeholder="e.g. Waiting for spare compressor..." />
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary w-100 mt-2">
+                  Apply Status Change
+                </button>
+              </form>
+            </div>
+          </div>
+          <% } %>
+
+          <!-- Assignment & Responsibility -->
+          <div class="wf-card mb-3">
+            <div class="wf-card-header">
+              <span class="fw-semibold small"><i class="bi bi-person-check me-2 text-primary"></i>Assignment</span>
+            </div>
+            <div class="wf-card-body">
+              <% if (canAssign && !['closed','cancelled'].includes(ticket.status)) { %>
+              <form method="POST" action="/tickets/<%= ticket._id %>/assign">
+                <div class="mb-2">
+                  <label class="form-label">Responsible Technician</label>
+                  <select class="form-select form-select-sm" name="assignedTo">
+                    <option value="">— Unassigned —</option>
+                    <% staff.forEach(u => { %>
+                    <option value="<%= u._id %>" <%= ticket.assignedTo && ticket.assignedTo._id.toString() === u._id.toString() ? 'selected' : '' %>>
+                      <%= u.name %> (<%= u.role.replace(/_/g, ' ') %>)
+                    </option>
+                    <% }) %>
+                  </select>
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">Assigned Team / Unit</label>
+                  <input type="text" class="form-control form-control-sm" name="assignedTeam" value="<%= ticket.assignedTeam || '' %>" placeholder="e.g. Biomedical Unit 1" />
+                </div>
+                <div class="mb-2">
+                  <label class="form-label">Responsible Dept</label>
+                  <select class="form-select form-select-sm" name="assignedDepartmentId">
+                    <option value="">Same as reporting dept</option>
+                    <% departments.forEach(d => { %>
+                    <option value="<%= d._id %>" <%= ticket.assignedDepartmentId && ticket.assignedDepartmentId.toString() === d._id.toString() ? 'selected' : '' %>><%= d.name %></option>
+                    <% }) %>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-sm btn-outline-primary w-100 mt-2">
+                  Save Assignment
+                </button>
+              </form>
+              <% } else { %>
+              <div class="small">
+                <% if (ticket.assignedTo) { %>
+                  <div class="fw-semibold text-dark"><%= ticket.assignedTo.name %></div>
+                  <div class="text-muted"><%= ticket.assignedTo.email %></div>
+                  <% if (ticket.assignedTeam) { %>
+                  <div class="badge bg-light text-secondary border mt-1"><%= ticket.assignedTeam %></div>
+                  <% } %>
+                <% } else { %>
+                  <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Unassigned</span>
+                <% } %>
+              </div>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Metadata & Telemetry -->
+          <div class="wf-card">
+            <div class="wf-card-header">
+              <span class="fw-semibold small"><i class="bi bi-info-circle me-2 text-secondary"></i>Ticket Telemetry</span>
+            </div>
+            <div class="p-0">
+              <table class="table table-sm mb-0" style="font-size: 0.75rem;">
+                <tbody>
+                  <tr>
+                    <td class="text-muted ps-3 py-2">Department</td>
+                    <td class="fw-semibold text-dark text-end pe-3 py-2">
+                      <%= ticket.reportingDepartmentId ? ticket.reportingDepartmentId.name : '—' %>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted ps-3 py-2">Reported By</td>
+                    <td class="text-dark text-end pe-3 py-2">
+                      <%= ticket.reportedBy ? ticket.reportedBy.name : '—' %>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted ps-3 py-2">Created Time</td>
+                    <td class="text-muted text-end pe-3 py-2">
+                      <%= new Date(ticket.createdAt).toLocaleString('en-IN') %>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted ps-3 py-2">Target SLA Due</td>
+                    <td class="text-end pe-3 py-2">
+                      <span class="<%= ticket.dueAt && new Date(ticket.dueAt) < new Date() && !['closed','resolved'].includes(ticket.status) ? 'text-danger fw-bold' : 'text-dark' %>">
+                        <%= ticket.dueAt ? new Date(ticket.dueAt).toLocaleString('en-IN') : 'None' %>
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted ps-3 py-2">Escalation Count</td>
+                    <td class="text-end pe-3 py-2">
+                      <span class="badge <%= ticket.escalationLevel > 0 ? 'bg-danger-subtle text-danger' : 'bg-light text-secondary border' %>">
+                        Level <%= ticket.escalationLevel || 0 %>
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Right Column: Metadata & Assignment -->
-      <div class="col-md-4">
-        <!-- Details Card -->
-        <div class="card border-0 shadow-sm mb-3">
-          <div class="card-header fw-semibold bg-white small"><i class="bi bi-info-circle me-2"></i>Ticket Metadata</div>
-          <ul class="list-group list-group-flush small">
-            <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Ticket ID</span><strong><%= ticket.ticketNumber %></strong></li>
-            <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Reporting Dept</span><span><%= ticket.reportingDepartmentId ? ticket.reportingDepartmentId.name : '—' %></span></li>
-            <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Reported By</span><span><%= ticket.reportedBy ? ticket.reportedBy.name : '—' %></span></li>
-            <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Created</span><span><%= new Date(ticket.createdAt).toLocaleString('en-IN') %></span></li>
-            <li class="list-group-item d-flex justify-content-between">
-              <span class="text-muted">Resolution Deadline</span>
-              <span class="<%= ticket.dueAt && new Date(ticket.dueAt) < new Date() && !['closed','resolved'].includes(ticket.status) ? 'text-danger fw-bold' : '' %>">
-                <%= ticket.dueAt ? new Date(ticket.dueAt).toLocaleString('en-IN') : 'None configured' %>
-              </span>
-            </li>
-            <% if (ticket.verifiedAt) { %>
-            <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Verified by</span><span><%= ticket.verifiedBy ? ticket.verifiedBy.name : '—' %></span></li>
-            <% } %>
-            <% if (ticket.cancelledBy) { %>
-            <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Cancelled by</span><span><%= ticket.cancelledBy ? ticket.cancelledBy.name : '—' %></span></li>
-            <% } %>
-            <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Escalations</span><span><%= ticket.escalationLevel %></span></li>
-          </ul>
+      <!-- Reopen Modal -->
+      <div class="modal fade" id="reopenModal" tabindex="-1">
+        <div class="modal-dialog">
+          <form method="POST" action="/tickets/<%= ticket._id %>/reopen" class="modal-content">
+            <div class="modal-header">
+              <h6 class="modal-title fw-bold">Reopen Ticket <%= ticket.ticketNumber %></h6>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <p class="text-muted small mb-2">Previous resolution history will be preserved in the audit log.</p>
+              <label class="form-label">Reason for reopening <span class="text-danger">*</span></label>
+              <textarea class="form-control form-control-sm" name="reopenReason" rows="3" required placeholder="Why is this issue unresolved?"></textarea>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-sm btn-warning">Confirm Reopen</button>
+            </div>
+          </form>
         </div>
-
-        <!-- Assignment Box -->
-        <% if (canAssign && !['closed','cancelled'].includes(ticket.status)) { %>
-        <div class="card border-0 shadow-sm mb-3">
-          <div class="card-header fw-semibold bg-white small"><i class="bi bi-person-check me-2"></i>Assignment & Ownership</div>
-          <div class="card-body">
-            <form method="POST" action="/tickets/<%= ticket._id %>/assign">
-              <div class="mb-2">
-                <label class="form-label small">Responsible Assignee</label>
-                <select class="form-select form-select-sm" name="assignedTo">
-                  <option value="">Unassigned</option>
-                  <% staff.forEach(u => { %><option value="<%= u._id %>" <%= ticket.assignedTo && ticket.assignedTo._id.toString() === u._id.toString() ? 'selected' : '' %>><%= u.name %> (<%= u.role.replace('_',' ') %>)</option><% }) %>
-                </select>
-              </div>
-              <div class="mb-2">
-                <label class="form-label small">Assigned Team / Unit</label>
-                <input type="text" class="form-control form-control-sm" name="assignedTeam" value="<%= ticket.assignedTeam || '' %>" placeholder="e.g. Electrical, Biomedical" />
-              </div>
-              <div class="mb-2">
-                <label class="form-label small">Target Responsible Department</label>
-                <select class="form-select form-select-sm" name="assignedDepartmentId">
-                  <option value="">Same as reporting</option>
-                  <% departments.forEach(d => { %><option value="<%= d._id %>" <%= ticket.assignedDepartmentId && ticket.assignedDepartmentId.toString() === d._id.toString() ? 'selected' : '' %>><%= d.name %></option><% }) %>
-                </select>
-              </div>
-              <button type="submit" class="btn btn-sm btn-primary w-100 mt-2">Save Assignment</button>
-            </form>
-          </div>
-        </div>
-        <% } else { %>
-        <div class="card border-0 shadow-sm mb-3">
-          <div class="card-header fw-semibold bg-white small"><i class="bi bi-person me-2"></i>Owner</div>
-          <div class="card-body small">
-            <% if (ticket.assignedTo) { %>
-            <strong><%= ticket.assignedTo.name %></strong><br/><span class="text-muted"><%= ticket.assignedTo.email %></span>
-            <% } else { %><span class="text-warning">Unassigned</span><% } %>
-          </div>
-        </div>
-        <% } %>
-
-        <!-- Attachments -->
-        <% if (ticket.attachments && ticket.attachments.length > 0) { %>
-        <div class="card border-0 shadow-sm">
-          <div class="card-header fw-semibold bg-white small"><i class="bi bi-paperclip me-2"></i>Evidence & Files</div>
-          <ul class="list-group list-group-flush small">
-            <% ticket.attachments.forEach(a => { %>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <span><i class="bi bi-file-earmark me-1"></i><%= a.originalName %></span>
-              <span class="text-muted" style="font-size:0.75rem"><%= Math.round(a.size / 1024) %> KB</span>
-            </li>
-            <% }) %>
-          </ul>
-        </div>
-        <% } %>
       </div>
-    </div>
 
-    <!-- Reopen Modal -->
-    <div class="modal fade" id="reopenModal" tabindex="-1">
-      <div class="modal-dialog">
-        <form method="POST" action="/tickets/<%= ticket._id %>/reopen" class="modal-content">
-          <div class="modal-header"><h5 class="modal-title">Reopen Ticket</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-          <div class="modal-body">
-            <p class="text-muted small">Previous resolution history will be preserved.</p>
-            <label class="form-label small fw-semibold">Reason for reopening</label>
-            <textarea class="form-control" name="reopenReason" rows="3" required placeholder="Why is this issue still occurring?"></textarea>
-          </div>
-          <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-warning btn-sm">Confirm Reopen</button></div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Cancel Modal -->
-    <div class="modal fade" id="cancelModal" tabindex="-1">
-      <div class="modal-dialog">
-        <form method="POST" action="/tickets/<%= ticket._id %>/cancel" class="modal-content">
-          <div class="modal-header"><h5 class="modal-title text-danger">Cancel Ticket</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-          <div class="modal-body">
-            <div class="alert alert-warning small">Cancellation requires authorization and is recorded in the activity audit trail.</div>
-            <label class="form-label small fw-semibold">Cancellation reason <span class="text-danger">*</span></label>
-            <textarea class="form-control" name="cancellationReason" rows="3" required placeholder="Duplicate ticket, reported in error, cancelled by department head..."></textarea>
-          </div>
-          <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Back</button><button type="submit" class="btn btn-danger btn-sm">Cancel Ticket</button></div>
-        </form>
+      <!-- Cancel Modal -->
+      <div class="modal fade" id="cancelModal" tabindex="-1">
+        <div class="modal-dialog">
+          <form method="POST" action="/tickets/<%= ticket._id %>/cancel" class="modal-content">
+            <div class="modal-header">
+              <h6 class="modal-title fw-bold text-danger">Cancel Ticket <%= ticket.ticketNumber %></h6>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="wf-alert wf-alert-warning mb-2 py-2">Cancellation requires authorization and is recorded in the activity audit trail.</div>
+              <label class="form-label">Cancellation reason <span class="text-danger">*</span></label>
+              <textarea class="form-control form-control-sm" name="cancellationReason" rows="3" required placeholder="e.g. Duplicate report, reported in error..."></textarea>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="submit" class="btn btn-sm btn-danger">Confirm Cancellation</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </main>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/wardflow.js"></script>
 <script>

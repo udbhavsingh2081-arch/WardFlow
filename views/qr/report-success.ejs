@@ -8,33 +8,33 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <style>
     body {
-      background-color: #f0fdf4;
+      background-color: #f8fafc;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 1.25rem;
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     .card-success {
-      max-width: 460px;
+      max-width: 440px;
       width: 100%;
-      border-radius: 20px;
-      border: 1px solid #bbf7d0;
-      box-shadow: 0 10px 25px -5px rgba(22, 101, 52, 0.1);
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
       background: #ffffff;
       padding: 2.5rem 1.75rem;
       text-align: center;
     }
     .badge-ticket {
-      font-size: 1.35rem;
-      font-family: monospace;
-      letter-spacing: 0.05em;
-      background-color: #dcfce7;
-      color: #166534;
-      border: 1px solid #86efac;
-      padding: 0.6rem 1.2rem;
-      border-radius: 12px;
+      font-size: 1.25rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: 0.04em;
+      background-color: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
       display: inline-block;
       margin: 1rem 0;
     }
@@ -43,25 +43,25 @@
 <body>
 <div class="card-success">
   <div class="mb-3">
-    <div class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-      <i class="bi bi-check2-circle fs-1"></i>
+    <div class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+      <i class="bi bi-check2-circle fs-2"></i>
     </div>
   </div>
 
-  <h3 class="fw-bold text-dark mb-1">Issue Reported!</h3>
-  <p class="text-muted small mb-2">Your report for <strong><%= assetName %></strong> has been received and logged into WardFlow.</p>
+  <h5 class="fw-bold text-dark mb-1">Issue Reported!</h5>
+  <p class="text-secondary small mb-2">Your report for <strong><%= assetName %></strong> has been logged into WardFlow.</p>
 
   <div class="badge-ticket fw-bold">
     <%= ticketNumber %>
   </div>
 
   <p class="small text-muted mb-4">
-    The responsible department has been notified according to SLA response targets. Please quote this ticket number if following up.
+    The responsible department has been notified. Please quote this ticket number if following up.
   </p>
 
   <div class="d-grid gap-2">
-    <button onclick="window.close(); if(!window.closed) window.location.reload();" class="btn btn-outline-success">
-      <i class="bi bi-x-circle me-1"></i> Close
+    <button onclick="window.close(); if(!window.closed) window.location.reload();" class="btn btn-outline-secondary btn-sm">
+      Close Window
     </button>
   </div>
 </div>

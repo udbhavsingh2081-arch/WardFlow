@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Settings — <%= appName %></title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
@@ -12,35 +13,53 @@
   <%- include('../partials/sidebar') %>
   <main class="wf-main flex-grow-1">
     <%- include('../partials/topbar') %>
-    <%- include('../partials/flash') %>
-    <div class="card border-0 shadow-sm" style="max-width:580px">
-      <div class="card-header fw-semibold bg-white"><i class="bi bi-gear me-2 text-primary"></i>Hospital Tenant Configuration</div>
-      <div class="card-body">
-        <form method="POST" action="/admin/settings">
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Hospital Name <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" name="name" value="<%= hospital.name %>" required />
+    <div class="wf-content">
+      <%- include('../partials/flash') %>
+
+      <div class="mb-4">
+        <h5 class="fw-bold mb-1"><i class="bi bi-sliders2 text-primary me-2"></i>Hospital Facility Configuration</h5>
+        <p class="text-muted small mb-0">Global facility profile, regional timezone, and compliance verification rules.</p>
+      </div>
+
+      <div class="row justify-content-center">
+        <div class="col-lg-7">
+          <div class="wf-card">
+            <div class="wf-card-header">
+              <span class="fw-semibold small"><i class="bi bi-hospital me-1 text-primary"></i>Tenant Profile</span>
+            </div>
+            <div class="wf-card-body">
+              <form method="POST" action="/admin/settings">
+                <div class="mb-3">
+                  <label class="form-label">Hospital Name <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control form-control-sm" name="name" value="<%= hospital.name %>" required />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Facility Address</label>
+                  <textarea class="form-control form-control-sm" name="address" rows="2"><%= hospital.address || '' %></textarea>
+                </div>
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Contact Phone</label>
+                    <input type="tel" class="form-control form-control-sm" name="phone" value="<%= hospital.phone || '' %>" />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Operational Timezone</label>
+                    <input type="text" class="form-control form-control-sm" name="timezone" value="<%= hospital.timezone || 'Asia/Kolkata' %>" />
+                    <div class="form-text" style="font-size: 0.7rem;">Default: Asia/Kolkata (IST)</div>
+                  </div>
+                </div>
+                <div class="p-3 mb-4 rounded-2 bg-light border">
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" name="requireVerification" id="reqVerif" <%= hospital.settings && hospital.settings.requireVerification ? 'checked' : '' %> />
+                    <label class="form-check-label fw-semibold small" for="reqVerif">Independent Supervisor Sign-Off</label>
+                    <div class="form-text" style="font-size: 0.72rem;">When enabled, resolved tickets require independent verification by a supervisor before being closed.</div>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Save Configuration</button>
+              </form>
+            </div>
           </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Facility Address</label>
-            <textarea class="form-control" name="address" rows="2"><%= hospital.address || '' %></textarea>
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Contact Phone</label>
-            <input type="tel" class="form-control" name="phone" value="<%= hospital.phone || '' %>" />
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Operational Timezone</label>
-            <input type="text" class="form-control" name="timezone" value="<%= hospital.timezone || 'Asia/Kolkata' %>" />
-            <div class="form-text">e.g. Asia/Kolkata (IST)</div>
-          </div>
-          <div class="mb-4 form-check">
-            <input type="checkbox" class="form-check-input" name="requireVerification" id="reqVerif" <%= hospital.settings && hospital.settings.requireVerification ? 'checked' : '' %> />
-            <label class="form-check-label fw-semibold" for="reqVerif">Enforce independent supervisor verification before ticket closure</label>
-            <div class="form-text">When enabled, resolved tickets require sign-off by a supervisor or manager to close.</div>
-          </div>
-          <button type="submit" class="btn btn-primary btn-sm">Save Configuration</button>
-        </form>
+        </div>
       </div>
     </div>
   </main>

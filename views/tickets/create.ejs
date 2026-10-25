@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Report Issue — <%= appName %></title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
@@ -12,145 +13,203 @@
   <%- include('../partials/sidebar') %>
   <main class="wf-main flex-grow-1">
     <%- include('../partials/topbar') %>
-    <%- include('../partials/flash') %>
+    <div class="wf-content">
+      <%- include('../partials/flash') %>
 
-    <div class="row g-4">
-      <div class="col-md-8">
-        <!-- AI Quick Assistant -->
-        <div class="card border-primary border-opacity-25 mb-3 bg-light">
-          <div class="card-body py-3">
-            <div class="d-flex align-items-center gap-2 mb-2">
-              <i class="bi bi-stars text-primary fs-5"></i>
-              <strong class="text-primary small">AI Assisted Ticket Drafting</strong>
-              <span class="badge bg-primary-subtle text-primary border border-primary-subtle small ms-auto">Preview</span>
-            </div>
-            <div class="d-flex gap-2 align-items-center">
-              <input type="text" id="ai-description-input" class="form-control form-control-sm" placeholder="E.g. 'The suction pump in ICU Room 3 is making loud screeching noise and stopped working'..." />
-              <button type="button" id="ai-suggest-btn" class="btn btn-sm btn-primary text-nowrap" onclick="suggestTicket(document.getElementById('ai-description-input').value)">
-                <i class="bi bi-stars"></i> Suggest
-              </button>
-            </div>
+      <!-- Breadcrumbs & Heading -->
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <a href="/tickets" class="text-decoration-none text-muted small"><i class="bi bi-arrow-left me-1"></i>Back to tickets</a>
           </div>
-        </div>
-
-        <!-- AI suggestion result panel -->
-        <div id="ai-suggestion-panel" class="ai-suggestion-panel p-3 mb-3 d-none">
-          <div class="d-flex gap-2">
-            <i class="bi bi-info-circle text-primary mt-1"></i>
-            <div>
-              <div id="ai-suggestion-text" class="small fw-semibold text-primary"></div>
-              <div id="ai-missing-info" class="text-warning small mt-1"></div>
-              <div class="text-muted small mt-1">Fields pre-populated below. Review and adjust before submitting.</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card border-0 shadow-sm">
-          <div class="card-header fw-semibold bg-white">
-            <i class="bi bi-ticket me-2 text-primary"></i>Operational Issue Details
-          </div>
-          <div class="card-body">
-            <form method="POST" action="/tickets" enctype="multipart/form-data">
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Reporting Department <span class="text-danger">*</span></label>
-                <select class="form-select" name="departmentId" required>
-                  <option value="">Select department...</option>
-                  <% departments.forEach(d => { %>
-                  <option value="<%= d._id %>"><%= d.name %></option>
-                  <% }) %>
-                </select>
-              </div>
-
-              <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                  <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
-                  <select class="form-select text-capitalize" name="category" id="ticket-category" required>
-                    <option value="">Select category...</option>
-                    <% CATEGORIES.forEach(c => { %><option value="<%= c %>"><%= c %></option><% }) %>
-                  </select>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-semibold">Priority <span class="text-danger">*</span></label>
-                  <select class="form-select text-capitalize" name="priority" id="ticket-priority" required>
-                    <option value="">Select priority...</option>
-                    <% PRIORITIES.forEach(p => { %><option value="<%= p %>"><%= p %></option><% }) %>
-                  </select>
-                </div>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Issue Title <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" name="title" id="ticket-title" required maxlength="200" placeholder="Short description of the problem" />
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Detailed Description <span class="text-danger">*</span></label>
-                <textarea class="form-control" name="description" id="ticket-description" rows="4" required maxlength="2000" placeholder="Location, symptoms, impact on operations. Never include patient names or medical records."></textarea>
-                <div class="form-text text-warning mt-1"><i class="bi bi-shield-exclamation me-1"></i>Do NOT enter patient names, MRN, diagnoses or clinical data.</div>
-              </div>
-
-              <% if (currentUser && ['supervisor','operations_manager','hospital_admin'].includes(currentUser.role)) { %>
-              <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                  <label class="form-label">Assign To (Optional)</label>
-                  <select class="form-select" name="assignedTo">
-                    <option value="">Leave unassigned (Auto-route / Supervisor assigns)</option>
-                    <% staff.forEach(u => { %><option value="<%= u._id %>"><%= u.name %> (<%= u.role.replace('_',' ') %>)</option><% }) %>
-                  </select>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Responsible Team (Optional)</label>
-                  <input type="text" class="form-control" name="assignedTeam" placeholder="e.g. Bio-med, Facilities, Electricians" />
-                </div>
-              </div>
-              <% } %>
-
-              <div class="mb-3">
-                <label class="form-label">Evidence / Photo Attachment</label>
-                <input type="file" class="form-control" name="attachments" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" />
-                <div class="form-text">Max 5 files (JPG, PNG, PDF, max 5MB each).</div>
-              </div>
-
-              <div class="alert alert-warning small py-2 my-3" role="alert">
-                <i class="bi bi-exclamation-triangle me-1"></i>
-                <strong>Emergency Notice:</strong> If this issue creates an immediate hazard to human life, active medical care, or fire danger, use your hospital's direct emergency codes immediately. WardFlow is not an emergency dispatch system.
-              </div>
-
-              <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i>Submit Ticket</button>
-                <a href="/tickets" class="btn btn-outline-secondary">Cancel</a>
-              </div>
-            </form>
-          </div>
+          <h5 class="fw-bold mb-0">Report Operational Issue</h5>
+          <p class="text-muted small mb-0">Submit a new work order for hospital facility, biomedical, or housekeeping teams.</p>
         </div>
       </div>
 
-      <!-- Reference sidebar -->
-      <div class="col-md-4">
-        <div class="card border-0 shadow-sm mb-3">
-          <div class="card-header fw-semibold bg-white small"><i class="bi bi-info-circle me-2"></i>Eligible Issues</div>
-          <div class="card-body small">
-            <p class="text-muted">WardFlow handles non-clinical operational problems:</p>
-            <ul class="text-muted ps-3">
-              <li>Biomedical & ward equipment faults</li>
-              <li>Plumbing, leaks & sanitation</li>
-              <li>Electrical & lighting failures</li>
-              <li>Housekeeping & spillage cleanup</li>
-              <li>Missing medical or operational supplies</li>
-              <li>Infrastructure & HVAC repairs</li>
-            </ul>
+      <div class="row g-4">
+        <!-- Main Form Column -->
+        <div class="col-lg-8">
+          <!-- Subtle AI Assistant Bar -->
+          <div class="wf-card mb-3" style="background: #f8fafc; border-style: dashed;">
+            <div class="p-3">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small fw-semibold text-primary d-flex align-items-center gap-1">
+                  <i class="bi bi-stars"></i> Quick AI Auto-fill
+                </span>
+                <span class="badge bg-light text-muted border" style="font-size: 0.65rem;">Optional Assistant</span>
+              </div>
+              <div class="input-group input-group-sm">
+                <input type="text" id="ai-description-input" class="form-control" placeholder="e.g. 'Air conditioner in ICU Room 3 is blowing warm air and leaking water on floor'..." />
+                <button type="button" id="ai-suggest-btn" class="btn btn-primary" onclick="suggestTicket(document.getElementById('ai-description-input').value)">
+                  <i class="bi bi-magic me-1"></i>Auto-fill Form
+                </button>
+              </div>
+              <!-- AI Feedback Drawer -->
+              <div id="ai-suggestion-panel" class="mt-2 pt-2 border-top d-none" style="font-size: 0.75rem;">
+                <div id="ai-suggestion-text" class="fw-semibold text-primary"></div>
+                <div id="ai-missing-info" class="text-warning-emphasis"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Issue Form -->
+          <div class="wf-card">
+            <div class="wf-card-header">
+              <span class="fw-semibold small"><i class="bi bi-pencil-square me-2 text-primary"></i>Work Order Details</span>
+              <span class="meta-label text-danger">* Required fields</span>
+            </div>
+            <div class="wf-card-body">
+              <form method="POST" action="/tickets" enctype="multipart/form-data">
+                <!-- Section 1: Department & Location -->
+                <div class="row g-3 mb-3">
+                  <div class="col-md-12">
+                    <label class="form-label">Reporting Department <span class="text-danger">*</span></label>
+                    <select class="form-select form-select-sm" name="departmentId" required>
+                      <option value="">— Select hospital department —</option>
+                      <% departments.forEach(d => { %>
+                      <option value="<%= d._id %>"><%= d.name %></option>
+                      <% }) %>
+                    </select>
+                    <div class="form-text" style="font-size: 0.7rem;">Where the fault or maintenance problem is physically located.</div>
+                  </div>
+                </div>
+
+                <!-- Section 2: Category & Priority -->
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Category <span class="text-danger">*</span></label>
+                    <select class="form-select form-select-sm text-capitalize" name="category" id="ticket-category" required>
+                      <option value="">— Select category —</option>
+                      <% CATEGORIES.forEach(c => { %>
+                      <option value="<%= c %>"><%= c %></option>
+                      <% }) %>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Urgency / Priority <span class="text-danger">*</span></label>
+                    <select class="form-select form-select-sm text-capitalize" name="priority" id="ticket-priority" required>
+                      <option value="">— Select priority —</option>
+                      <% PRIORITIES.forEach(p => { %>
+                      <option value="<%= p %>"><%= p %></option>
+                      <% }) %>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Section 3: Title & Description -->
+                <div class="mb-3">
+                  <label class="form-label">Problem Summary <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control form-control-sm" name="title" id="ticket-title" required maxlength="200" placeholder="Brief summary of the operational issue" />
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Detailed Description <span class="text-danger">*</span></label>
+                  <textarea class="form-control" name="description" id="ticket-description" rows="4" required maxlength="2000" placeholder="Specify exact room, bed number, error messages, or symptoms..."></textarea>
+                  <div class="d-flex align-items-center gap-1 text-secondary mt-1" style="font-size: 0.72rem;">
+                    <i class="bi bi-shield-lock text-primary"></i>
+                    <span><strong>Privacy Protection:</strong> Never enter patient names, medical history, or clinical records in operational tickets.</span>
+                  </div>
+                </div>
+
+                <!-- Section 4: Assignment (Supervisors / Managers only) -->
+                <% if (currentUser && ['supervisor','operations_manager','hospital_admin'].includes(currentUser.role)) { %>
+                <div class="p-3 mb-3 rounded-2 bg-light border">
+                  <div class="meta-label mb-2 text-dark">Management Assignment (Optional)</div>
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">Direct Assignee</label>
+                      <select class="form-select form-select-sm" name="assignedTo">
+                        <option value="">Leave unassigned for supervisor triage</option>
+                        <% staff.forEach(u => { %>
+                        <option value="<%= u._id %>"><%= u.name %> (<%= u.role.replace(/_/g, ' ') %>)</option>
+                        <% }) %>
+                      </select>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Assigned Team / Unit</label>
+                      <input type="text" class="form-control form-control-sm" name="assignedTeam" placeholder="e.g. Biomedical, Electrical, Plumbing" />
+                    </div>
+                  </div>
+                </div>
+                <% } %>
+
+                <!-- Section 5: Photo / Document Attachments -->
+                <div class="mb-4">
+                  <label class="form-label">Photo or Diagnostic Attachment (Optional)</label>
+                  <input type="file" class="form-control form-control-sm" name="attachments" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" />
+                  <div class="form-text" style="font-size: 0.7rem;">Supported: JPG, PNG, PDF (max 5 files, 5MB each).</div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 pt-2 border-top">
+                  <button type="submit" class="btn btn-primary px-3">
+                    <i class="bi bi-send me-1"></i>Submit Work Order
+                  </button>
+                  <a href="/tickets" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
 
-        <div class="card border-0 shadow-sm">
-          <div class="card-header fw-semibold bg-white small"><i class="bi bi-clock-history me-2"></i>Standard Target SLAs</div>
-          <div class="card-body small">
-            <table class="table table-sm mb-0">
-              <tr><td><span class="badge badge-priority-critical">Critical</span></td><td class="text-muted">Immediate / 2 hrs</td></tr>
-              <tr><td><span class="badge badge-priority-high">High</span></td><td class="text-muted">4 hours</td></tr>
-              <tr><td><span class="badge badge-priority-medium">Medium</span></td><td class="text-muted">1 business day</td></tr>
-              <tr><td><span class="badge badge-priority-low">Low</span></td><td class="text-muted">3 business days</td></tr>
-            </table>
+        <!-- Sidebar: Guidance & Emergency Protocol -->
+        <div class="col-lg-4">
+          <!-- Emergency Callout -->
+          <div class="wf-card mb-3 border-danger border-opacity-25" style="background: #fff5f5;">
+            <div class="p-3">
+              <div class="d-flex align-items-center gap-2 text-danger fw-semibold small mb-1">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span>Emergency Safety Notice</span>
+              </div>
+              <p class="mb-0 text-secondary" style="font-size: 0.75rem; line-height: 1.4;">
+                If this fault involves active fire danger, live electrical shock hazard, or immediate threat to human life, contact your hospital emergency codes extension immediately. WardFlow is not an emergency dispatch system.
+              </p>
+            </div>
+          </div>
+
+          <!-- SLA Targets Table -->
+          <div class="wf-card mb-3">
+            <div class="wf-card-header">
+              <span class="fw-semibold small"><i class="bi bi-clock-history me-1 text-primary"></i>Target SLA Matrix</span>
+            </div>
+            <div class="p-0">
+              <table class="table table-sm mb-0" style="font-size: 0.75rem;">
+                <tbody>
+                  <tr>
+                    <td class="ps-3"><span class="wf-badge badge-priority-critical"><span class="status-dot"></span>Critical</span></td>
+                    <td class="text-secondary fw-semibold">Immediate / 4h</td>
+                  </tr>
+                  <tr>
+                    <td class="ps-3"><span class="wf-badge badge-priority-high"><span class="status-dot"></span>High</span></td>
+                    <td class="text-secondary">12 hours</td>
+                  </tr>
+                  <tr>
+                    <td class="ps-3"><span class="wf-badge badge-priority-medium"><span class="status-dot"></span>Medium</span></td>
+                    <td class="text-secondary">24 hours</td>
+                  </tr>
+                  <tr>
+                    <td class="ps-3"><span class="wf-badge badge-priority-low"><span class="status-dot"></span>Low</span></td>
+                    <td class="text-secondary">48 hours</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Scope Reference -->
+          <div class="wf-card">
+            <div class="wf-card-header">
+              <span class="fw-semibold small"><i class="bi bi-info-circle me-1 text-secondary"></i>Eligible Issues</span>
+            </div>
+            <div class="p-3 small text-secondary" style="font-size: 0.75rem;">
+              <ul class="ps-3 mb-0">
+                <li class="mb-1">Biomedical and monitoring equipment faults</li>
+                <li class="mb-1">Plumbing, water leaks, and sanitary blocks</li>
+                <li class="mb-1">Lighting, generator, and electrical trips</li>
+                <li class="mb-1">Spillages and critical housekeeping requests</li>
+                <li>HVAC, air handling units, and cold chain maintenance</li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>

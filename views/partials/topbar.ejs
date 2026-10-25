@@ -1,10 +1,31 @@
-<div class="d-flex align-items-center justify-content-between mb-3 py-2 border-bottom">
-  <h5 class="mb-0 fw-semibold"><%= typeof title !== 'undefined' ? title : appName %></h5>
-  <div class="d-flex align-items-center gap-3">
-    <a href="/tickets/new" class="btn btn-sm btn-primary"><i class="bi bi-plus-circle me-1"></i>Report Issue</a>
-    <a href="/dashboard" class="text-secondary position-relative">
-      <i class="bi bi-bell fs-5"></i>
-    </a>
-    <a href="/auth/profile" class="text-secondary"><i class="bi bi-person-circle fs-5"></i></a>
+<header class="wf-topbar">
+  <div class="d-flex align-items-center gap-2">
+    <button class="btn btn-sm btn-outline-secondary d-lg-none me-1 px-2 py-1" type="button" id="sidebarToggle" aria-label="Toggle navigation">
+      <i class="bi bi-list fs-6"></i>
+    </button>
+    <div class="wf-breadcrumbs">
+      <a href="/dashboard"><i class="bi bi-hospital me-1"></i><%= appName %></a>
+      <% if (typeof title !== 'undefined' && title && title !== appName) { %>
+        <span class="divider">/</span>
+        <span class="current"><%= title.replace(' — ' + appName, '').replace(' — ' + (locals.appName || ''), '') %></span>
+      <% } %>
+    </div>
   </div>
-</div>
+
+  <div class="d-flex align-items-center gap-2">
+    <a href="/tickets/new" class="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 shadow-none">
+      <i class="bi bi-plus-lg"></i>
+      <span class="d-none d-sm-inline">Report Issue</span>
+    </a>
+
+    <div class="vr mx-1 my-2 text-secondary opacity-25"></div>
+
+    <a href="/dashboard" class="btn btn-sm btn-outline-secondary position-relative p-1 px-2 border-0" title="Alerts &amp; Notifications">
+      <i class="bi bi-bell text-secondary"></i>
+    </a>
+
+    <a href="/auth/profile" class="btn btn-sm btn-outline-secondary p-1 px-2 border-0" title="My Profile">
+      <i class="bi bi-person-circle text-secondary"></i>
+    </a>
+  </div>
+</header>
