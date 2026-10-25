@@ -129,4 +129,18 @@ app.use((err, req, res, next) => {
   res.status(status).render('errors/500', { title: 'Server Error', message: env.nodeEnv === 'development' ? err.message : 'An unexpected error occurred.' });
 });
 
+if (require.main === module) {
+  const connectDB = require('./config/database');
+  const escalationWorker = require('./jobs/escalationWorker');
+  connectDB().then(() => {
+    if (env.runEscalationWorker) escalationWorker.start();
+    app.listen(env.port, env.host, () => {
+      console.log(`WardFlow running on ${env.host}:${env.port}`);
+    });
+  }).catch(err => {
+    console.error('Failed to start server from app.js:', err);
+    process.exit(1);
+  });
+}
+
 module.exports = app;

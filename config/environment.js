@@ -2,7 +2,7 @@ require('dotenv').config();
 
 module.exports = {
   nodeEnv: process.env.NODE_ENV || 'development',
-  port: parseInt(process.env.PORT, 10) || 3000,
+  port: Number(process.env.PORT) || 3000,
   host: process.env.HOST || '0.0.0.0',
   trustProxy: process.env.TRUST_PROXY !== undefined
     ? (process.env.TRUST_PROXY === 'true' ? true : (!isNaN(Number(process.env.TRUST_PROXY)) ? Number(process.env.TRUST_PROXY) : process.env.TRUST_PROXY))

@@ -8,5 +8,6 @@ router.use(isLoggedIn, tenantAccess);
 
 router.post('/suggest-ticket', aiController.suggestTicket);
 router.get('/summary', aiController.managementSummary);
+router.post('/tickets/:id/summary', aiController.generateIncidentSummary);
 
 module.exports = router;

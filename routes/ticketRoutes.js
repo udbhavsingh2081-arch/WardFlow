@@ -18,5 +18,6 @@ router.post('/:id/resolve', ticketController.resolveTicket);
 router.post('/:id/verify', ticketController.verifyTicket);
 router.post('/:id/reopen', ticketController.reopenTicket);
 router.post('/:id/cancel', ticketController.cancelTicket);
+router.post('/:id/ai-summary', ticketController.generateAISummary);
 
 module.exports = router;

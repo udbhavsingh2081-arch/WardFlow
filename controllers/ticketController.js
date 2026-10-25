@@ -546,3 +546,6 @@ exports.cancelTicket = async (req, res) => {
     res.redirect(`/tickets/${req.params.id}`);
   }
 };
+
+const aiController = require('./aiController');
+exports.generateAISummary = aiController.generateIncidentSummary;

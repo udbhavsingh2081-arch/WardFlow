@@ -44,6 +44,12 @@
 
         <!-- Action Buttons -->
         <div class="d-flex align-items-center gap-2 flex-wrap">
+          <% if (currentUser && ['supervisor','operations_manager','hospital_admin','platform_admin'].includes(currentUser.role)) { %>
+          <button type="button" id="btnGenerateSummary" class="btn btn-sm btn-outline-primary" onclick="generateIncidentSummary('<%= ticket._id %>')">
+            <i class="bi bi-stars me-1"></i>Generate AI Summary
+          </button>
+          <% } %>
+
           <% if (canVerify && ticket.status === 'resolved') { %>
           <form method="POST" action="/tickets/<%= ticket._id %>/verify" class="d-inline">
             <button type="submit" class="btn btn-sm btn-success" data-confirm="Confirm independent verification and close ticket?">
@@ -70,6 +76,9 @@
       <div class="row g-4">
         <!-- Left: Work Area (65%) -->
         <div class="col-lg-8">
+          <!-- AI Incident Summary Container -->
+          <div id="aiSummaryContainer" class="d-none mb-4"></div>
+
           <!-- Ticket Header & Description Card -->
           <div class="wf-card mb-4">
             <div class="wf-card-body">

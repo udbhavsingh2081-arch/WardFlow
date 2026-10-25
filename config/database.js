@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const dns = require('dns');
 const env = require('./environment');
 
 const connectDB = async () => {
@@ -21,6 +22,19 @@ const connectDB = async () => {
     console.log(`MongoDB connected: ${conn.connection.host}`);
     return conn;
   } catch (err) {
+    // If local/ISP DNS fails to resolve SRV record, retry with public DNS
+    if (err.message && (err.message.includes('querySrv ECONNREFUSED') || err.message.includes('querySrv ENOTFOUND'))) {
+      try {
+        console.warn('[DATABASE NOTICE] Local DNS failed on SRV query; retrying with public DNS (8.8.8.8, 1.1.1.1)...');
+        dns.setServers(['8.8.8.8', '1.1.1.1']);
+        const conn = await mongoose.connect(uri, { serverSelectionTimeoutMS: 10000 });
+        console.log(`MongoDB connected: ${conn.connection.host}`);
+        return conn;
+      } catch (retryErr) {
+        err = retryErr;
+      }
+    }
+
     console.error('[DATABASE ERROR] Failed to connect to MongoDB:', err.message);
     if (err.message.includes('bad auth') || err.message.includes('Authentication failed')) {
       console.error('[DATABASE DIAGNOSTIC] Authentication failed. Please verify your MongoDB database username and password in MONGODB_URI.');

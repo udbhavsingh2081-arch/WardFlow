@@ -122,3 +122,8 @@ Be concise and actionable. Use bullet points. Keep the summary under 300 words.`
 
   return response.choices[0]?.message?.content || 'Summary unavailable.';
 };
+
+const geminiIncidentSummaryService = require('./geminiIncidentSummaryService');
+
+exports.generateIncidentSummary = (opts) => geminiIncidentSummaryService.generateIncidentSummary(opts);
+exports.sanitizeHospitalText = (text) => geminiIncidentSummaryService.sanitizeHospitalText(text);

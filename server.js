@@ -18,7 +18,7 @@ const startServer = async () => {
   }
 
   server = app.listen(env.port, env.host, () => {
-    console.log(`WardFlow running at http://${env.host}:${env.port} [${env.nodeEnv}]`);
+    console.log(`WardFlow running on ${env.host}:${env.port}`);
   });
 
   return server;
