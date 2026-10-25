@@ -105,7 +105,7 @@ async function generateIncidentSummary({ ticket, activities = [], comments = [] 
     throw err;
   }
 
-  const geminiModel = process.env.GEMINI_MODEL || (env.gemini && env.gemini.model) || 'gemini-1.5-flash';
+  const geminiModel = process.env.GEMINI_MODEL || (env.gemini && env.gemini.model) || 'gemini-flash-latest';
   const payload = buildIncidentPayload(ticket, activities, comments);
 
   const systemInstruction = `You are an expert AI Incident Analyst for WardFlow, a hospital facilities, equipment, and non-clinical operations management platform.

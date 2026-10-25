@@ -13,7 +13,7 @@ module.exports = {
   runEscalationWorker: process.env.RUN_ESCALATION_WORKER !== 'false',
   gemini: {
     apiKey: process.env.GEMINI_API_KEY || '',
-    model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
+    model: process.env.GEMINI_MODEL || 'gemini-flash-latest',
   },
   openai: {
     apiKey: process.env.OPENAI_API_KEY || '',
