@@ -12,12 +12,10 @@ const env = require('./config/environment');
 
 const app = express();
 
-// Trust reverse proxy (PieHost/PaaS/Nginx/Cloudflare) for secure cookies and rate limits
 if (env.trustProxy) {
   app.set('trust proxy', env.trustProxy);
 }
 
-// Minimal safe health check endpoint for platform monitoring & load balancers
 app.get(['/health', '/api/health'], (req, res) => {
   const dbState = mongoose.connection.readyState;
   const states = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
@@ -31,7 +29,6 @@ app.get(['/health', '/api/health'], (req, res) => {
   });
 });
 
-// Security
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -44,7 +41,6 @@ app.use(helmet({
   },
 }));
 
-// Rate limiting
 const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: 'Too many login attempts. Please try again later.' });
 const apiLimiter = rateLimit({ windowMs: 1 * 60 * 1000, max: 60 });
 const aiLimiter = rateLimit({ windowMs: 1 * 60 * 1000, max: 10 });
@@ -53,18 +49,14 @@ app.use('/auth/login', loginLimiter);
 app.use('/api/ai', aiLimiter);
 app.use('/api/', apiLimiter);
 
-// Request logging
 if (env.nodeEnv !== 'test') app.use(morgan('dev'));
 
-// Body parsing
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.json({ limit: '10mb' }));
 app.use(methodOverride('_method'));
 
-// Static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Session
 app.use(session({
   secret: env.sessionSecret,
   resave: false,
@@ -79,11 +71,9 @@ app.use(session({
   name: 'wf.sid',
 }));
 
-// View engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Locals middleware — make user and flash available in all templates
 app.use((req, res, next) => {
   res.locals.currentUser = req.session.user || null;
   res.locals.appName = env.app.name;
@@ -92,7 +82,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
 const authRoutes = require('./routes/authRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
@@ -111,18 +100,15 @@ app.use('/api/reports', reportRoutes);
 app.use('/qr', qrRoutes);
 app.use('/analytics', analyticsRoutes);
 
-// Root redirect
 app.get('/', (req, res) => {
   if (req.session.user) return res.redirect('/dashboard');
   res.redirect('/auth/login');
 });
 
-// 404
 app.use((req, res) => {
   res.status(404).render('errors/404', { title: 'Page Not Found' });
 });
 
-// Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
   const status = err.status || 500;

@@ -30,8 +30,6 @@ beforeAll(async () => {
   await Department.deleteMany({});
   await Ticket.deleteMany({});
   await Counter.deleteMany({});
-
-  // Hospital A
   hospitalA = await Hospital.create({
     name: 'Analytics Hospital A',
     slug: 'analytics-hosp-a',
@@ -80,8 +78,6 @@ beforeAll(async () => {
     departmentIds: [deptA1._id],
     isActive: true,
   });
-
-  // Hospital B for Tenant Isolation Check
   hospitalB = await Hospital.create({
     name: 'Analytics Hospital B',
     slug: 'analytics-hosp-b',
@@ -94,11 +90,7 @@ beforeAll(async () => {
     code: 'HBD',
     isActive: true,
   });
-
-  // Create seed tickets in Hospital A
   const now = new Date();
-
-  // 1. Resolved on time ticket
   await Ticket.create({
     ticketNumber: 'WF-2026-00001',
     hospitalId: hospitalA._id,
@@ -115,8 +107,6 @@ beforeAll(async () => {
     resolvedAt: subHours(now, 2),
     createdAt: subHours(now, 12),
   });
-
-  // 2. Overdue open ticket
   await Ticket.create({
     ticketNumber: 'WF-2026-00002',
     hospitalId: hospitalA._id,
@@ -132,8 +122,6 @@ beforeAll(async () => {
     escalationLevel: 2,
     createdAt: subHours(now, 8),
   });
-
-  // 3. Ticket in Hospital B (must NOT be counted in Hospital A)
   await Ticket.create({
     ticketNumber: 'WF-2026-99999',
     hospitalId: hospitalB._id,
@@ -146,8 +134,6 @@ beforeAll(async () => {
     reportedBy: adminA._id,
     createdAt: now,
   });
-
-  // Agents login
   agentAdminA = request.agent(app);
   await agentAdminA.post('/auth/login').send({ email: 'adminA@analytics.com', password: 'Pass@1234' });
 
@@ -193,8 +179,6 @@ describe('Escalation & Bottleneck Analytics', () => {
     expect(res.text).toContain('SLA Breach Rate');
     expect(res.text).toContain('Maintenance &amp; Facilities');
     expect(res.text).toContain('Electrical Engineering');
-
-    // Tenant Isolation Check: Hospital B ticket must not appear
     expect(res.text).not.toContain('Hospital B Scanner issue');
   });
 

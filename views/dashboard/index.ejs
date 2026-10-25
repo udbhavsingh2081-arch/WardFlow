@@ -16,7 +16,6 @@
     <div class="wf-content">
       <%- include('../partials/flash') %>
 
-      <!-- Dashboard Header -->
       <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
           <h5 class="fw-bold mb-1">Operations Overview</h5>
@@ -34,7 +33,6 @@
         </div>
       </div>
 
-      <!-- Primary 4 KPI Metrics -->
       <div class="row g-3 mb-4">
         <div class="col-6 col-lg-3">
           <div class="wf-kpi-tile">
@@ -93,7 +91,6 @@
         </div>
       </div>
 
-      <!-- Secondary Telemetry Strip: SLA Attainment & Avg Resolution Time -->
       <% if (slaAttainment !== null || avgResolutionHours !== null) { %>
       <div class="row g-3 mb-4">
         <% if (slaAttainment !== null) { %>
@@ -131,9 +128,7 @@
       </div>
       <% } %>
 
-      <!-- 2-Column Operational Workspace -->
       <div class="row g-4">
-        <!-- Left: My Assigned Tickets -->
         <div class="col-lg-6">
           <div class="wf-card h-100">
             <div class="wf-card-header">
@@ -200,7 +195,6 @@
           </div>
         </div>
 
-        <!-- Right: Recent Operational Updates -->
         <div class="col-lg-6">
           <div class="wf-card h-100">
             <div class="wf-card-header">
@@ -251,7 +245,6 @@
           </div>
         </div>
 
-        <!-- Bottom: Operational Alerts & Notifications -->
         <% if (notifications && notifications.length > 0) { %>
         <div class="col-12">
           <div class="wf-card">

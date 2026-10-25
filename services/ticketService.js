@@ -19,10 +19,8 @@ exports.isValidTransition = (from, to) => {
 };
 
 exports.createTicket = async ({ hospitalId, reportingDepartmentId, category, title, description, priority, reportedBy, assignedTo, assignedTeam, files, actorId, actorName }) => {
-  // Generate unique ticket number
   const ticketNumber = await generateTicketNumber(hospitalId);
 
-  // Compute due date from SLA policy
   const slaPolicy = await SLAPolicy.findOne({ hospitalId, priority, isActive: true });
   let dueAt = null;
   if (slaPolicy) {

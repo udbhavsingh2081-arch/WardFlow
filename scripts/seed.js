@@ -14,8 +14,6 @@ const QRAsset = require('../models/QRAsset');
 const seed = async () => {
   await connectDB();
   console.log('🌱 Seeding WardFlow Hospital Operations Database...');
-
-  // Clear existing data
   await Promise.all([
     Hospital.deleteMany({}),
     User.deleteMany({}),
@@ -27,8 +25,6 @@ const seed = async () => {
     QRAsset.deleteMany({}),
   ]);
   console.log('✓ Cleared previous database collections');
-
-  // Create hospital
   const hospital = await Hospital.create({
     name: 'City Care Hospital',
     slug: 'city-care',
@@ -39,8 +35,6 @@ const seed = async () => {
     settings: { requireVerification: true, allowReporterView: true },
   });
   console.log(`✓ Hospital Tenant: ${hospital.name}`);
-
-  // Create departments
   const deptData = [
     { name: 'General Ward', code: 'GW01' },
     { name: 'ICU (Intensive Care Unit)', code: 'ICU01' },
@@ -59,11 +53,7 @@ const seed = async () => {
     }))
   );
   console.log(`✓ Departments: ${departments.map(d => d.name).join(', ')}`);
-
-  // Hash password helper
   const hash = (pw) => bcrypt.hash(pw, 12);
-
-  // Create users
   const users = await User.create([
     {
       hospitalId: hospital._id,
@@ -117,12 +107,8 @@ const seed = async () => {
     },
   ]);
   console.log(`✓ Users created: ${users.map(u => u.email).join(', ')}`);
-
-  // Assign department supervisors
   await Department.findByIdAndUpdate(departments[0]._id, { supervisorId: users[2]._id });
   await Department.findByIdAndUpdate(departments[1]._id, { supervisorId: users[2]._id });
-
-  // SLA Policies
   await SLAPolicy.create([
     { hospitalId: hospital._id, priority: 'critical', acknowledgementHours: 0.5, responseHours: 1, resolutionHours: 2, useBusinessHours: false },
     { hospitalId: hospital._id, priority: 'high', acknowledgementHours: 1, responseHours: 2, resolutionHours: 4, useBusinessHours: true },
@@ -130,8 +116,6 @@ const seed = async () => {
     { hospitalId: hospital._id, priority: 'low', acknowledgementHours: 8, responseHours: 24, resolutionHours: 72, useBusinessHours: true },
   ]);
   console.log('✓ SLA Policies created for low, medium, high, and critical priorities');
-
-  // Sample tickets
   const now = new Date();
   const sampleTickets = [
     {
@@ -213,8 +197,6 @@ const seed = async () => {
   ];
 
   const createdTickets = await Ticket.insertMany(sampleTickets);
-
-  // Sample QR Assets
   const token1 = QRAsset.generateToken();
   const token2 = QRAsset.generateToken();
   await QRAsset.create([
@@ -246,8 +228,6 @@ const seed = async () => {
     },
   ]);
   console.log('✓ Sample QR Assets seeded (ICU Ventilator #04, Backup DG-1)');
-
-  // Activity logs
   await TicketActivity.insertMany([
     { ticketId: createdTickets[0]._id, hospitalId: hospital._id, actorId: users[4]._id, actorName: users[4].name, type: 'created', description: "Ticket created with priority 'high' in category 'plumbing'" },
     { ticketId: createdTickets[0]._id, hospitalId: hospital._id, actorId: users[1]._id, actorName: users[1].name, type: 'assigned', description: `Assigned to ${users[3].name}` },
@@ -258,8 +238,6 @@ const seed = async () => {
     { ticketId: createdTickets[3]._id, hospitalId: hospital._id, actorId: users[3]._id, actorName: users[3].name, type: 'resolved', description: 'Marked as resolved. Replaced ballast and tube panel.' },
     { ticketId: createdTickets[3]._id, hospitalId: hospital._id, actorId: users[2]._id, actorName: users[2].name, type: 'verified', description: `Verified and closed by ${users[2].name}` },
   ]);
-
-  // Set counter sequence
   await Counter.create({ key: `ticket_${hospital._id}_2026`, seq: 5 });
 
   console.log(`✓ Sample tickets seeded: ${createdTickets.map(t => t.ticketNumber).join(', ')}`);

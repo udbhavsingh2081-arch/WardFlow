@@ -6,7 +6,6 @@ const transporter = nodemailer.createTransport({
   host: env.email.host,
   port: env.email.port,
   auth: { user: env.email.user, pass: env.email.pass },
-  // In development, use a preview-only mode
 });
 
 exports.createNotification = async ({ hospitalId, recipientId, ticketId, type, title, message, channel = 'in_app' }) => {
@@ -20,7 +19,6 @@ exports.createNotification = async ({ hospitalId, recipientId, ticketId, type, t
     channel,
     deliveryStatus: 'pending',
   });
-  // Attempt email delivery if configured
   if (channel === 'email' && env.email.user) {
     await exports.sendEmail(notification);
   }

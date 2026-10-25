@@ -1,7 +1,3 @@
-/**
- * Role hierarchy (higher index = more access)
- * reporter < staff < supervisor < operations_manager < hospital_admin < platform_admin
- */
 const ROLES = ['reporter', 'staff', 'supervisor', 'operations_manager', 'hospital_admin', 'platform_admin'];
 
 exports.ROLES = ROLES;

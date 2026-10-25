@@ -7,7 +7,6 @@ let activeProvider = null;
 const getClient = () => {
   if (client) return client;
 
-  // Priority 1: Google Gemini (via Google's official OpenAI-compatible endpoint)
   if (env.gemini && env.gemini.apiKey && env.gemini.apiKey !== 'your_gemini_api_key_here') {
     client = new OpenAI({
       apiKey: env.gemini.apiKey,
@@ -18,7 +17,6 @@ const getClient = () => {
     return client;
   }
 
-  // Priority 2: OpenAI
   if (env.openai && env.openai.apiKey && env.openai.apiKey !== 'sk-your-openai-api-key-here') {
     const opts = { apiKey: env.openai.apiKey, timeout: 15000 };
     if (env.openai.baseURL) opts.baseURL = env.openai.baseURL;

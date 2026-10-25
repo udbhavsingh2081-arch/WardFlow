@@ -43,7 +43,6 @@ const ticketSchema = new mongoose.Schema({
   lastEscalatedAt: { type: Date },
   attachments: [attachmentSchema],
   isOverdue: { type: Boolean, default: false },
-  // Previous resolution history when reopened
   resolutionHistory: [{
     resolvedAt: Date,
     resolutionSummary: String,
@@ -54,7 +53,6 @@ const ticketSchema = new mongoose.Schema({
   }],
 }, { timestamps: true });
 
-// Indexes per PRD section 4.4
 ticketSchema.index({ hospitalId: 1, ticketNumber: 1 }, { unique: true });
 ticketSchema.index({ hospitalId: 1, status: 1, dueAt: 1 });
 ticketSchema.index({ hospitalId: 1, assignedTo: 1, status: 1 });

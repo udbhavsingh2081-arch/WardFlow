@@ -16,7 +16,6 @@
     <div class="wf-content">
       <%- include('../partials/flash') %>
 
-      <!-- Top Command Bar -->
       <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 pb-3 border-bottom">
         <div class="d-flex align-items-center gap-2 flex-wrap">
           <a href="/tickets" class="btn btn-sm btn-outline-secondary py-1 px-2" title="Back to register">
@@ -42,7 +41,6 @@
           <% } %>
         </div>
 
-        <!-- Action Buttons -->
         <div class="d-flex align-items-center gap-2 flex-wrap">
           <% if (currentUser && ['supervisor','operations_manager','hospital_admin','platform_admin'].includes(currentUser.role)) { %>
           <button type="button" id="btnGenerateSummary" class="btn btn-sm btn-outline-secondary" onclick="generateIncidentSummary('<%= ticket._id %>')">
@@ -72,14 +70,10 @@
         </div>
       </div>
 
-      <!-- Main Layout: Left Work Area + Right Inspector -->
       <div class="row g-4">
-        <!-- Left: Work Area (65%) -->
         <div class="col-lg-8">
-          <!-- AI Incident Summary Container -->
           <div id="aiSummaryContainer" class="d-none mb-4"></div>
 
-          <!-- Ticket Header & Description Card -->
           <div class="wf-card mb-4">
             <div class="wf-card-body">
               <h4 class="fw-bold text-dark mb-3"><%= ticket.title %></h4>
@@ -87,7 +81,6 @@
               <div class="meta-label mb-2">Description</div>
               <div class="text-secondary mb-3" style="white-space: pre-wrap; font-size: 0.875rem; line-height: 1.6;"><%= ticket.description %></div>
 
-              <!-- Attachments if any -->
               <% if (ticket.attachments && ticket.attachments.length > 0) { %>
               <div class="pt-3 border-top">
                 <div class="meta-label mb-2"><i class="bi bi-paperclip me-1"></i>Attachments (<%= ticket.attachments.length %>)</div>
@@ -105,7 +98,6 @@
             </div>
           </div>
 
-          <!-- Resolution Summary Banner if resolved/closed -->
           <% if (ticket.resolutionSummary) { %>
           <div class="wf-card mb-4 border-success border-opacity-50" style="background: #f0fdf4;">
             <div class="wf-card-body">
@@ -126,7 +118,6 @@
           </div>
           <% } %>
 
-          <!-- Resolve Action Box (when assigned/in_progress/blocked) -->
           <% if (canResolve && ['assigned','in_progress','blocked'].includes(ticket.status)) { %>
           <div class="wf-card mb-4 border-primary border-opacity-50">
             <div class="wf-card-header bg-primary-subtle border-primary border-opacity-25">
@@ -146,13 +137,11 @@
           </div>
           <% } %>
 
-          <!-- Communication & Operational Notes -->
           <div class="wf-card mb-4">
             <div class="wf-card-header">
               <span class="fw-semibold small"><i class="bi bi-chat-left-text me-2 text-primary"></i>Operational Notes &amp; Comments (<%= comments.length %>)</span>
             </div>
             <div class="wf-card-body">
-              <!-- Comments List -->
               <% if (!comments || comments.length === 0) { %>
               <div class="text-muted small text-center py-3">No operational comments posted yet.</div>
               <% } else { %>
@@ -177,7 +166,6 @@
               </div>
               <% } %>
 
-              <!-- New Comment Form -->
               <form method="POST" action="/tickets/<%= ticket._id %>/comments" class="pt-3 border-top">
                 <div class="mb-2">
                   <textarea class="form-control form-control-sm" name="content" rows="2" placeholder="Post a technical update, findings, or instructions..." required></textarea>
@@ -195,7 +183,6 @@
             </div>
           </div>
 
-          <!-- Timestamped Audit Trail -->
           <div class="wf-card">
             <div class="wf-card-header">
               <span class="fw-semibold small"><i class="bi bi-clock-history me-2 text-secondary"></i>Audit Activity Timeline</span>
@@ -220,9 +207,7 @@
           </div>
         </div>
 
-        <!-- Right: Inspector Column (35%) -->
         <div class="col-lg-4">
-          <!-- Status Controls -->
           <% if (!['closed','cancelled'].includes(ticket.status)) { %>
           <div class="wf-card mb-3">
             <div class="wf-card-header">
@@ -251,7 +236,6 @@
           </div>
           <% } %>
 
-          <!-- Assignment & Responsibility -->
           <div class="wf-card mb-3">
             <div class="wf-card-header">
               <span class="fw-semibold small"><i class="bi bi-person-check me-2 text-primary"></i>Assignment</span>
@@ -303,7 +287,6 @@
             </div>
           </div>
 
-          <!-- Metadata & Telemetry -->
           <div class="wf-card">
             <div class="wf-card-header">
               <span class="fw-semibold small"><i class="bi bi-info-circle me-2 text-secondary"></i>Ticket Telemetry</span>
@@ -352,7 +335,6 @@
         </div>
       </div>
 
-      <!-- Reopen Modal -->
       <div class="modal fade" id="reopenModal" tabindex="-1">
         <div class="modal-dialog">
           <form method="POST" action="/tickets/<%= ticket._id %>/reopen" class="modal-content">
@@ -373,7 +355,6 @@
         </div>
       </div>
 
-      <!-- Cancel Modal -->
       <div class="modal fade" id="cancelModal" tabindex="-1">
         <div class="modal-dialog">
           <form method="POST" action="/tickets/<%= ticket._id %>/cancel" class="modal-content">

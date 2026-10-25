@@ -16,7 +16,6 @@
     <div class="wf-content">
       <%- include('../partials/flash') %>
 
-      <!-- Breadcrumbs & Heading -->
       <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
           <div class="d-flex align-items-center gap-2 mb-1">
@@ -28,9 +27,7 @@
       </div>
 
       <div class="row g-4">
-        <!-- Main Form Column -->
         <div class="col-lg-8">
-          <!-- Subtle AI Assistant Bar -->
           <div class="wf-card mb-3" style="background: #f8fafc; border-style: dashed;">
             <div class="p-3">
               <div class="d-flex align-items-center justify-content-between mb-2">
@@ -45,7 +42,6 @@
                   <i class="bi bi-magic me-1"></i>Auto-fill Form
                 </button>
               </div>
-              <!-- AI Feedback Drawer -->
               <div id="ai-suggestion-panel" class="mt-2 pt-2 border-top d-none" style="font-size: 0.75rem;">
                 <div id="ai-suggestion-text" class="fw-semibold text-primary"></div>
                 <div id="ai-missing-info" class="text-warning-emphasis"></div>
@@ -53,7 +49,6 @@
             </div>
           </div>
 
-          <!-- Main Issue Form -->
           <div class="wf-card">
             <div class="wf-card-header">
               <span class="fw-semibold small"><i class="bi bi-pencil-square me-2 text-primary"></i>Work Order Details</span>
@@ -61,7 +56,6 @@
             </div>
             <div class="wf-card-body">
               <form method="POST" action="/tickets" enctype="multipart/form-data">
-                <!-- Section 1: Department & Location -->
                 <div class="row g-3 mb-3">
                   <div class="col-md-12">
                     <label class="form-label">Reporting Department <span class="text-danger">*</span></label>
@@ -75,7 +69,6 @@
                   </div>
                 </div>
 
-                <!-- Section 2: Category & Priority -->
                 <div class="row g-3 mb-3">
                   <div class="col-md-6">
                     <label class="form-label">Category <span class="text-danger">*</span></label>
@@ -97,7 +90,6 @@
                   </div>
                 </div>
 
-                <!-- Section 3: Title & Description -->
                 <div class="mb-3">
                   <label class="form-label">Problem Summary <span class="text-danger">*</span></label>
                   <input type="text" class="form-control form-control-sm" name="title" id="ticket-title" required maxlength="200" placeholder="Brief summary of the operational issue" />
@@ -112,7 +104,6 @@
                   </div>
                 </div>
 
-                <!-- Section 4: Assignment (Supervisors / Managers only) -->
                 <% if (currentUser && ['supervisor','operations_manager','hospital_admin'].includes(currentUser.role)) { %>
                 <div class="p-3 mb-3 rounded-2 bg-light border">
                   <div class="meta-label mb-2 text-dark">Management Assignment (Optional)</div>
@@ -134,7 +125,6 @@
                 </div>
                 <% } %>
 
-                <!-- Section 5: Photo / Document Attachments -->
                 <div class="mb-4">
                   <label class="form-label">Photo or Diagnostic Attachment (Optional)</label>
                   <input type="file" class="form-control form-control-sm" name="attachments" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" />
@@ -152,9 +142,7 @@
           </div>
         </div>
 
-        <!-- Sidebar: Guidance & Emergency Protocol -->
         <div class="col-lg-4">
-          <!-- Emergency Callout -->
           <div class="wf-card mb-3 border-danger border-opacity-25" style="background: #fff5f5;">
             <div class="p-3">
               <div class="d-flex align-items-center gap-2 text-danger fw-semibold small mb-1">
@@ -167,7 +155,6 @@
             </div>
           </div>
 
-          <!-- SLA Targets Table -->
           <div class="wf-card mb-3">
             <div class="wf-card-header">
               <span class="fw-semibold small"><i class="bi bi-clock-history me-1 text-primary"></i>Target SLA Matrix</span>
@@ -196,7 +183,6 @@
             </div>
           </div>
 
-          <!-- Scope Reference -->
           <div class="wf-card">
             <div class="wf-card-header">
               <span class="fw-semibold small"><i class="bi bi-info-circle me-1 text-secondary"></i>Eligible Issues</span>

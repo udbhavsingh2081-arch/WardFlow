@@ -1,8 +1,5 @@
 const Counter = require('../models/Counter');
 
-/**
- * Generates a concurrency-safe ticket number like WF-2026-00125
- */
 const generateTicketNumber = async (hospitalId) => {
   const year = new Date().getFullYear();
   const key = `ticket_${hospitalId}_${year}`;

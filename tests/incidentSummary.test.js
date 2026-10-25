@@ -28,16 +28,10 @@ beforeAll(async () => {
     TicketActivity.deleteMany({}),
     Comment.deleteMany({}),
   ]);
-
-  // Setup hospitals
   hospitalA = await Hospital.create({ name: 'General Hospital A', slug: 'hosp-a', timezone: 'Asia/Kolkata' });
   hospitalB = await Hospital.create({ name: 'Metropolitan Hospital B', slug: 'hosp-b', timezone: 'Asia/Kolkata' });
-
-  // Setup departments
   deptA = await Department.create({ hospitalId: hospitalA._id, name: 'Biomedical Engineering', code: 'BIOMED' });
   deptB = await Department.create({ hospitalId: hospitalB._id, name: 'Facilities', code: 'FAC' });
-
-  // Setup users in Hospital A
   supervisorA = await User.create({
     hospitalId: hospitalA._id,
     name: 'Supervisor Sarah',
@@ -67,8 +61,6 @@ beforeAll(async () => {
     isActive: true,
     departmentIds: [deptA._id],
   });
-
-  // Setup user in Hospital B (for tenant isolation test)
   adminB = await User.create({
     hospitalId: hospitalB._id,
     name: 'Admin Bob',
@@ -78,8 +70,6 @@ beforeAll(async () => {
     isActive: true,
     departmentIds: [deptB._id],
   });
-
-  // Setup ticket with rich history
   ticketWithHistory = await Ticket.create({
     ticketNumber: 'WF-2026-88001',
     hospitalId: hospitalA._id,
@@ -95,8 +85,6 @@ beforeAll(async () => {
     assignedTeam: 'Biomedical Tech Team',
     dueAt: new Date(Date.now() + 4 * 3600000),
   });
-
-  // Add activities
   await TicketActivity.create([
     {
       ticketId: ticketWithHistory._id,
@@ -125,8 +113,6 @@ beforeAll(async () => {
       newValue: 'in_progress',
     },
   ]);
-
-  // Add comments
   await Comment.create([
     {
       ticketId: ticketWithHistory._id,
@@ -136,8 +122,6 @@ beforeAll(async () => {
       isInternal: true,
     },
   ]);
-
-  // Setup ticket with empty history
   ticketEmptyHistory = await Ticket.create({
     ticketNumber: 'WF-2026-88002',
     hospitalId: hospitalA._id,
@@ -149,8 +133,6 @@ beforeAll(async () => {
     status: 'open',
     reportedBy: reporterA._id,
   });
-
-  // Authenticate sessions
   agentSupervisor = request.agent(app);
   await agentSupervisor.post('/auth/login').send({ email: 'sarah.sup@hospa.org', password: 'Pass@1234' });
 
@@ -264,33 +246,29 @@ describe('AI Incident Summary Service Execution & Error Handling', () => {
     delete process.env.GEMINI_API_KEY;
 
     const res = await agentSupervisor.post(`/tickets/${ticketEmptyHistory._id}/ai-summary`);
-    // Should still fail with 503 because API key is absent, but must not crash
     expect(res.statusCode).toBe(503);
 
     if (originalKey) process.env.GEMINI_API_KEY = originalKey;
   });
 
   test('Anchors current database status and returns 7 structured sections when API succeeds', async () => {
-    // Test the service output structure with a simulated Gemini response
     const mockGeminiResponse = {
       incidentOverview: 'Infusion pump reported with error Err-44 on Bed 12 in Room 204.',
       actionsTaken: ['Inspected pump by biomedical technician', 'Ordered replacement battery pack'],
-      currentStatus: { status: 'wrong_ai_guess', priority: 'low', assignee: 'Hallucinated Name', slaState: 'wrong' },
+      currentStatus: { status: 'wrong_ai_guess', priority: 'low', assignee: 'Unknown Assignee', slaState: 'wrong' },
       outstandingActions: ['Waiting for battery pack #BP-12 delivery'],
       timeline: [{ timestamp: '2026-10-25T10:00:00Z', event: 'Issue reported' }],
       supervisorAttention: ['High priority equipment requiring battery replacement'],
       dataGaps: ['Tracking number for replacement part not recorded'],
     };
-
-    // Spy on generateIncidentSummary to simulate Google Gemini API return
     const spy = jest.spyOn(geminiService, 'generateIncidentSummary').mockResolvedValueOnce({
       incidentOverview: mockGeminiResponse.incidentOverview,
       actionsTaken: mockGeminiResponse.actionsTaken,
       currentStatus: {
-        status: ticketWithHistory.status, // Database anchored
-        priority: ticketWithHistory.priority, // Database anchored
-        assignee: 'Technician Tom', // Database anchored
-        slaState: 'On Track (~3h remaining)', // Database anchored
+        status: ticketWithHistory.status,
+        priority: ticketWithHistory.priority,
+        assignee: 'Technician Tom',
+        slaState: 'On Track (~3h remaining)',
         dueAt: ticketWithHistory.dueAt.toISOString(),
         isOverdue: false,
       },
@@ -312,7 +290,6 @@ describe('AI Incident Summary Service Execution & Error Handling', () => {
     expect(res.body.summary).toBeDefined();
 
     const s = res.body.summary;
-    // Verify all 7 sections
     expect(s.incidentOverview).toContain('Infusion pump');
     expect(s.actionsTaken).toHaveLength(2);
     expect(s.currentStatus.status).toBe('in_progress'); // Verified from DB

@@ -60,11 +60,9 @@ exports.showTrends = async (req, res) => {
       createdAt: { $gte: thirtyDaysAgo },
     }).lean();
 
-    // Category breakdown
     const byCategory = {};
     tickets.forEach(t => { byCategory[t.category] = (byCategory[t.category] || 0) + 1; });
 
-    // Priority breakdown
     const byPriority = {};
     tickets.forEach(t => { byPriority[t.priority] = (byPriority[t.priority] || 0) + 1; });
 

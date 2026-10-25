@@ -16,7 +16,6 @@
     <div class="wf-content">
       <%- include('../partials/flash') %>
 
-      <!-- Page Header -->
       <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div class="d-flex align-items-center gap-2">
           <h5 class="fw-bold mb-0">Operational Issue Register</h5>
@@ -34,7 +33,6 @@
         </div>
       </div>
 
-      <!-- Linear / Jira Style Filter Toolbar -->
       <div class="wf-card mb-3">
         <div class="p-3">
           <form method="GET" action="/tickets" class="row g-2 align-items-end">
@@ -100,7 +98,6 @@
         </div>
       </div>
 
-      <!-- Data Table -->
       <div class="wf-table-container">
         <div class="table-responsive">
           <table class="wf-table">
@@ -131,12 +128,10 @@
 
               <% tickets.forEach(t => { %>
               <tr class="ticket-row" data-href="/tickets/<%= t._id %>">
-                <!-- Ticket ID -->
                 <td class="ticket-code">
                   <a href="/tickets/<%= t._id %>" class="text-decoration-none"><%= t.ticketNumber %></a>
                 </td>
 
-                <!-- Summary & Department -->
                 <td>
                   <div class="fw-semibold text-dark text-truncate" style="max-width: 380px;"><%= t.title %></div>
                   <div class="text-muted" style="font-size: 0.6875rem;">
@@ -144,14 +139,12 @@
                   </div>
                 </td>
 
-                <!-- Category -->
                 <td>
                   <span class="badge bg-light text-secondary border small text-capitalize fw-normal">
                     <%= t.category %>
                   </span>
                 </td>
 
-                <!-- Priority Pill -->
                 <td>
                   <span class="wf-badge badge-priority-<%= t.priority %> text-uppercase">
                     <span class="status-dot"></span>
@@ -159,7 +152,6 @@
                   </span>
                 </td>
 
-                <!-- Status Pill -->
                 <td>
                   <span class="wf-badge badge-status-<%= t.status %>">
                     <span class="status-dot"></span>
@@ -167,7 +159,6 @@
                   </span>
                 </td>
 
-                <!-- Assignee -->
                 <td class="small">
                   <% if (t.assignedTo) { %>
                     <span class="text-dark fw-medium"><%= t.assignedTo.name %></span>
@@ -178,7 +169,6 @@
                   <% } %>
                 </td>
 
-                <!-- SLA Deadline -->
                 <td class="text-end small">
                   <% const isOverdue = t.dueAt && new Date(t.dueAt) < new Date() && !['closed','resolved','cancelled'].includes(t.status); %>
                   <% if (isOverdue) { %>
@@ -199,7 +189,6 @@
           </table>
         </div>
 
-        <!-- Pagination Bar -->
         <% if (pagination.totalPages > 1) { %>
         <div class="wf-card-footer d-flex justify-content-between align-items-center">
           <small class="text-muted">

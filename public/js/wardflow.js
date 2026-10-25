@@ -1,6 +1,3 @@
-/* WardFlow — Client-side helpers */
-
-// AI ticket suggestion
 async function suggestTicket(description) {
   const panel = document.getElementById('ai-suggestion-panel');
   const btn = document.getElementById('ai-suggest-btn');
@@ -62,7 +59,6 @@ async function suggestTicket(description) {
   }
 }
 
-// Auto-dismiss alerts
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     document.querySelectorAll('.alert-auto-dismiss').forEach(el => {
@@ -72,14 +68,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }, 4000);
 
-  // Confirm dialogs
   document.querySelectorAll('[data-confirm]').forEach(el => {
     el.addEventListener('click', e => {
       if (!confirm(el.dataset.confirm)) e.preventDefault();
     });
   });
 
-  // Mobile sidebar toggle
   const sidebarToggle = document.getElementById('sidebarToggle');
   const sidebar = document.getElementById('wfSidebar');
   if (sidebarToggle && sidebar) {
@@ -94,13 +88,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Ticket row click
   document.querySelectorAll('.ticket-row[data-href]').forEach(row => {
     row.addEventListener('click', () => { window.location = row.dataset.href; });
   });
 });
 
-// AI Incident Summary
 async function generateIncidentSummary(ticketId) {
   const btn = document.getElementById('btnGenerateSummary');
   const container = document.getElementById('aiSummaryContainer');

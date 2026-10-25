@@ -1,44 +1,34 @@
-/* ==========================================================================
-   WardFlow — Enterprise Hospital Operations Design System
-   Inspired by Linear, Jira Service Management, ServiceNow, and MaintainX
-   ========================================================================== */
+
 
 :root {
-  /* Brand Clinical Navy */
-  --wf-brand: #0f52ba;
+    --wf-brand: #0f52ba;
   --wf-brand-hover: #0d47a1;
   --wf-brand-active: #093478;
   --wf-brand-subtle: #eff6ff;
   --wf-brand-border: #bfdbfe;
 
-  /* Neutrals & Surfaces */
-  --wf-bg: #f8fafc;
+    --wf-bg: #f8fafc;
   --wf-surface: #ffffff;
   --wf-surface-subtle: #f1f5f9;
   --wf-surface-muted: #e2e8f0;
   
-  /* Borders */
-  --wf-border: #e2e8f0;
+    --wf-border: #e2e8f0;
   --wf-border-subtle: #f1f5f9;
   --wf-border-strong: #cbd5e1;
 
-  /* Typography Colors */
-  --wf-text-main: #0f172a;
+    --wf-text-main: #0f172a;
   --wf-text-secondary: #334155;
   --wf-text-muted: #64748b;
   --wf-text-subtle: #94a3b8;
 
-  /* Dimensions */
-  --wf-sidebar-width: 256px;
+    --wf-sidebar-width: 256px;
   --wf-topbar-height: 54px;
 
-  /* Elevation */
-  --wf-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --wf-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --wf-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08);
   --wf-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
 }
 
-/* Base Reset & Typography */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
   font-size: 0.875rem;
@@ -49,14 +39,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Headings */
 h1, h2, h3, h4, h5, h6 {
   color: var(--wf-text-main);
   font-weight: 600;
   letter-spacing: -0.015em;
 }
 
-/* Micro-labels & Captions */
 .meta-label {
   font-size: 0.6875rem;
   text-transform: uppercase;
@@ -73,9 +61,7 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 0.02em;
 }
 
-/* ==========================================================================
-   Layout: Sidebar & Main Area
-   ========================================================================== */
+
 
 .wf-sidebar {
   width: var(--wf-sidebar-width);
@@ -183,7 +169,6 @@ h1, h2, h3, h4, h5, h6 {
   flex-shrink: 0;
 }
 
-/* Main Content Container */
 .wf-main {
   margin-left: var(--wf-sidebar-width);
   min-height: 100vh;
@@ -197,9 +182,7 @@ h1, h2, h3, h4, h5, h6 {
   flex-grow: 1;
 }
 
-/* ==========================================================================
-   Topbar & Breadcrumbs
-   ========================================================================== */
+
 
 .wf-topbar {
   height: var(--wf-topbar-height);
@@ -241,9 +224,7 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
 }
 
-/* ==========================================================================
-   Cards & Surfaces
-   ========================================================================== */
+
 
 .wf-card {
   background: var(--wf-surface);
@@ -276,7 +257,6 @@ h1, h2, h3, h4, h5, h6 {
   border-bottom-right-radius: 8px;
 }
 
-/* Compact KPI Tile */
 .wf-kpi-tile {
   background: var(--wf-surface);
   border: 1px solid var(--wf-border);
@@ -317,7 +297,6 @@ h1, h2, h3, h4, h5, h6 {
   gap: 0.35rem;
 }
 
-/* Overdue Warning Accent */
 .wf-kpi-tile.kpi-danger {
   border-left: 3px solid #dc2626;
 }
@@ -334,9 +313,7 @@ h1, h2, h3, h4, h5, h6 {
   border-left: 3px solid #16a34a;
 }
 
-/* ==========================================================================
-   Data Tables (High Density Linear/MaintainX Style)
-   ========================================================================== */
+
 
 .wf-table-container {
   background: var(--wf-surface);
@@ -386,9 +363,7 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #f8fafc;
 }
 
-/* ==========================================================================
-   Badges, Pills & Indicators (Accessible, Subdued & High Contrast)
-   ========================================================================== */
+
 
 .wf-badge {
   display: inline-flex;
@@ -412,7 +387,6 @@ h1, h2, h3, h4, h5, h6 {
   flex-shrink: 0;
 }
 
-/* Priority Pills */
 .badge-priority-low {
   background-color: #f1f5f9;
   border-color: #e2e8f0;
@@ -441,7 +415,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 .badge-priority-critical .status-dot { background-color: #ef4444; }
 
-/* Status Pills */
 .badge-status-open {
   background-color: #f1f5f9;
   border-color: #cbd5e1;
@@ -491,7 +464,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 .badge-status-cancelled .status-dot { background-color: #94a3b8; }
 
-/* Overdue Indicator */
 .badge-overdue {
   background-color: #fef2f2;
   border-color: #fecaca;
@@ -499,9 +471,7 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
 }
 
-/* ==========================================================================
-   Buttons & Interactive Elements
-   ========================================================================== */
+
 
 .btn {
   font-weight: 500;
@@ -540,9 +510,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--wf-text-main);
 }
 
-/* ==========================================================================
-   Form Controls
-   ========================================================================== */
+
 
 .form-label {
   font-size: 0.75rem;
@@ -573,9 +541,7 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 5px;
 }
 
-/* ==========================================================================
-   Activity Timeline & Audit Trail
-   ========================================================================== */
+
 
 .timeline-feed {
   position: relative;
@@ -644,9 +610,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--wf-text-muted);
 }
 
-/* ==========================================================================
-   Alerts & Notifications
-   ========================================================================== */
+
 
 .wf-alert {
   border-radius: 6px;
@@ -682,9 +646,7 @@ h1, h2, h3, h4, h5, h6 {
   color: #92400e;
 }
 
-/* ==========================================================================
-   Responsive & Print Optimizations
-   ========================================================================== */
+
 
 @media (max-width: 991.98px) {
   .wf-sidebar {

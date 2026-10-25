@@ -12,7 +12,6 @@ const fs = require('fs');
 
 const { CATEGORIES, PRIORITIES, STATUSES } = require('../models/Ticket');
 
-// Multer configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const dir = path.join(__dirname, '../uploads');
@@ -53,7 +52,6 @@ exports.listTickets = async (req, res) => {
       { ticketNumber: { $regex: search, $options: 'i' } },
     ];
 
-    // Scope by role
     const user = req.session.user;
     if (user.role === 'staff' || user.role === 'reporter') {
       query.$or = [
@@ -117,7 +115,6 @@ exports.showCreate = async (req, res) => {
 };
 
 exports.createTicket = async (req, res) => {
-  // Handle file upload inline
   exports.uploadMiddleware(req, res, async (uploadErr) => {
     if (uploadErr) {
       req.session.flash = { error: uploadErr.message };
@@ -126,21 +123,17 @@ exports.createTicket = async (req, res) => {
     try {
       const { departmentId, category, title, description, priority, assignedTo, assignedTeam } = req.body;
 
-      // Validate required
       if (!departmentId || !category || !title || !description || !priority) {
         req.session.flash = { error: 'All required fields must be filled.' };
         return res.redirect('/tickets/new');
       }
 
-      // Validate enums
       if (!CATEGORIES.includes(category)) { req.session.flash = { error: 'Invalid category.' }; return res.redirect('/tickets/new'); }
       if (!PRIORITIES.includes(priority)) { req.session.flash = { error: 'Invalid priority.' }; return res.redirect('/tickets/new'); }
 
-      // Validate department belongs to hospital
       const dept = await Department.findOne({ _id: departmentId, hospitalId: req.hospitalId });
       if (!dept) { req.session.flash = { error: 'Invalid department.' }; return res.redirect('/tickets/new'); }
 
-      // Validate assignee if provided
       let assignedToUser = null;
       if (assignedTo) {
         assignedToUser = await User.findOne({ _id: assignedTo, hospitalId: req.hospitalId, isActive: true });
@@ -296,7 +289,6 @@ exports.updateStatus = async (req, res) => {
     const ticket = await Ticket.findOne({ _id: req.params.id, hospitalId: req.hospitalId });
     if (!ticket) { req.session.flash = { error: 'Ticket not found.' }; return res.redirect('/tickets'); }
 
-    // Validate transition
     const valid = ticketService.isValidTransition(ticket.status, status);
     if (!valid) {
       req.session.flash = { error: `Cannot transition from '${ticket.status}' to '${status}'.` };
@@ -427,7 +419,6 @@ exports.verifyTicket = async (req, res) => {
       return res.redirect(`/tickets/${ticket._id}`);
     }
 
-    // Staff cannot verify their own resolution
     if (ticket.assignedTo && ticket.assignedTo.toString() === user._id.toString() && user.role === 'staff') {
       req.session.flash = { error: 'You cannot verify a ticket you resolved.' };
       return res.redirect(`/tickets/${ticket._id}`);
@@ -472,7 +463,6 @@ exports.reopenTicket = async (req, res) => {
       return res.redirect(`/tickets/${ticket._id}`);
     }
 
-    // Preserve resolution history
     ticket.resolutionHistory.push({
       resolvedAt: ticket.resolvedAt,
       resolutionSummary: ticket.resolutionSummary,

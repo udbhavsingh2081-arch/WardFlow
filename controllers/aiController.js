@@ -63,7 +63,6 @@ exports.generateIncidentSummary = async (req, res) => {
       return res.status(404).json({ error: 'Ticket not found.' });
     }
 
-    // Role-based departmental oversight check for supervisors
     if (user.role === 'supervisor' && Array.isArray(user.departmentIds) && user.departmentIds.length > 0) {
       const reportingDeptId = ticket.reportingDepartmentId?._id ? ticket.reportingDepartmentId._id.toString() : ticket.reportingDepartmentId?.toString();
       const assignedDeptId = ticket.assignedDepartmentId?._id ? ticket.assignedDepartmentId._id.toString() : ticket.assignedDepartmentId?.toString();

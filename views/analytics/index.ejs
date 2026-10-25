@@ -16,7 +16,6 @@
     <div class="wf-content">
       <%- include('../partials/flash') %>
 
-      <!-- Page Header -->
       <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
           <h5 class="fw-bold mb-1"><i class="bi bi-bar-chart-line text-primary me-2"></i>Escalation &amp; Bottleneck Analytics</h5>
@@ -29,7 +28,6 @@
         </div>
       </div>
 
-      <!-- Filter Bar Card -->
       <div class="wf-card mb-4">
         <div class="p-3">
           <form method="GET" action="/analytics" class="row g-2 align-items-end">
@@ -82,9 +80,7 @@
         </div>
       </div>
 
-      <!-- 6 KPI Metric Cards (Using .wf-kpi-tile) -->
       <div class="row g-3 mb-4">
-        <!-- Total Tickets -->
         <div class="col-6 col-lg-2">
           <div class="wf-kpi-tile">
             <div class="kpi-label">
@@ -96,7 +92,6 @@
           </div>
         </div>
 
-        <!-- Overdue Open -->
         <div class="col-6 col-lg-2">
           <div class="wf-kpi-tile <%= kpis.overdueOpenCount > 0 ? 'kpi-danger' : '' %>">
             <div class="kpi-label">
@@ -108,7 +103,6 @@
           </div>
         </div>
 
-        <!-- SLA Breach Rate -->
         <div class="col-6 col-lg-2">
           <div class="wf-kpi-tile <%= kpis.slaBreachRate > 20 ? 'kpi-danger' : 'kpi-success' %>">
             <div class="kpi-label">
@@ -120,7 +114,6 @@
           </div>
         </div>
 
-        <!-- Avg Assignment Delay -->
         <div class="col-6 col-lg-2">
           <div class="wf-kpi-tile">
             <div class="kpi-label">
@@ -134,7 +127,6 @@
           </div>
         </div>
 
-        <!-- Avg Resolution Time -->
         <div class="col-6 col-lg-2">
           <div class="wf-kpi-tile">
             <div class="kpi-label">
@@ -148,7 +140,6 @@
           </div>
         </div>
 
-        <!-- Awaiting Assignment -->
         <div class="col-6 col-lg-2">
           <div class="wf-kpi-tile <%= kpis.awaitingAssignmentCount > 0 ? 'kpi-warning' : '' %>">
             <div class="kpi-label">
@@ -161,7 +152,6 @@
         </div>
       </div>
 
-      <!-- Section 1: Department Bottlenecks Table -->
       <div class="wf-table-container mb-4">
         <div class="wf-card-header">
           <div>
@@ -236,7 +226,6 @@
         </div>
       </div>
 
-      <!-- Section 2: Category SLA Analysis & Policy Reference -->
       <div class="row g-4 mb-4">
         <div class="col-lg-6">
           <div class="wf-table-container h-100">
@@ -332,7 +321,6 @@
         </div>
       </div>
 
-      <!-- Section 3: Active Escalation Monitoring Table -->
       <div class="wf-table-container">
         <div class="wf-card-header">
           <div>

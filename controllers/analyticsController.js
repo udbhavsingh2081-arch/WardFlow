@@ -5,16 +5,11 @@ const TicketActivity = require('../models/TicketActivity');
 const { CATEGORIES, PRIORITIES, STATUSES } = require('../models/Ticket');
 const { differenceInHours, differenceInMinutes, subDays, startOfDay, endOfDay, format } = require('date-fns');
 
-/**
- * GET /analytics
- * Render the Escalation and Bottleneck Analytics dashboard
- */
 exports.showAnalytics = async (req, res) => {
   try {
     const hospitalId = req.hospitalId;
     const now = new Date();
 
-    // ── 1. Parse & Validate Date Range ─────────────────────────────────────────
     const defaultFrom = format(subDays(now, 30), 'yyyy-MM-dd');
     const defaultTo = format(now, 'yyyy-MM-dd');
 
@@ -24,18 +19,15 @@ exports.showAnalytics = async (req, res) => {
     const startDate = startOfDay(new Date(fromParam));
     const endDate = endOfDay(new Date(toParam));
 
-    // ── 2. Filters ─────────────────────────────────────────────────────────────
     const departmentId = req.query.departmentId || '';
     const category = req.query.category || '';
     const priority = req.query.priority || '';
     const status = req.query.status || '';
 
-    // Validate enum filters against schemas
     const validCategory = CATEGORIES.includes(category) ? category : '';
     const validPriority = PRIORITIES.includes(priority) ? priority : '';
     const validStatus = STATUSES.includes(status) ? status : '';
 
-    // Build main query
     const baseFilter = {
       hospitalId,
       createdAt: { $gte: startDate, $lte: endDate },
@@ -46,7 +38,6 @@ exports.showAnalytics = async (req, res) => {
     if (validPriority) baseFilter.priority = validPriority;
     if (validStatus) baseFilter.status = validStatus;
 
-    // ── 3. Fetch Data ──────────────────────────────────────────────────────────
     const [departments, tickets, slaPolicies] = await Promise.all([
       Department.find({ hospitalId, isActive: true }).sort({ name: 1 }).lean(),
       Ticket.find(baseFilter)
@@ -57,28 +48,17 @@ exports.showAnalytics = async (req, res) => {
       SLAPolicy.find({ hospitalId, isActive: true }).lean(),
     ]);
 
-    // ── 4. KPI Calculations ───────────────────────────────────────────────────
     const totalTickets = tickets.length;
-
-    // Open tickets: status in open, assigned, in_progress, blocked
     const openStatuses = ['open', 'assigned', 'in_progress', 'blocked'];
 
-    // Overdue open tickets (within filter)
     const overdueOpenTickets = tickets.filter(
       t => openStatuses.includes(t.status) && t.dueAt && new Date(t.dueAt) < now
     );
 
-    // Tickets awaiting assignment
     const awaitingAssignment = tickets.filter(
       t => t.status === 'open' && !t.assignedTo
     );
 
-    // SLA Breach Rate calculation:
-    // Eligible: Tickets with a defined dueAt that has elapsed (dueAt < now) OR ticket is resolved/closed.
-    // Breached:
-    //  - If resolved: resolvedAt > dueAt
-    //  - If closed (and not resolvedAt): closedAt > dueAt
-    //  - If still open: now > dueAt
     let eligibleSLACount = 0;
     let breachedSLACount = 0;
 
@@ -104,8 +84,6 @@ exports.showAnalytics = async (req, res) => {
       ? Math.round((breachedSLACount / eligibleSLACount) * 100)
       : 0;
 
-    // Assignment delay:
-    // For tickets with acknowledgedAt or assignment record
     let totalAssignmentDelayMinutes = 0;
     let assignmentCount = 0;
 
@@ -123,7 +101,6 @@ exports.showAnalytics = async (req, res) => {
       ? (totalAssignmentDelayMinutes / assignmentCount / 60).toFixed(1)
       : null;
 
-    // Resolution time for resolved/closed tickets
     let totalResolutionHours = 0;
     let resolvedCount = 0;
 
@@ -144,8 +121,6 @@ exports.showAnalytics = async (req, res) => {
       ? (totalResolutionHours / resolvedCount).toFixed(1)
       : null;
 
-    // ── 5. Department Bottlenecks Breakdown ───────────────────────────────────
-    // Build breakdown for each department
     const deptStatsMap = {};
     departments.forEach(d => {
       deptStatsMap[d._id.toString()] = {
@@ -167,7 +142,6 @@ exports.showAnalytics = async (req, res) => {
       };
     });
 
-    // Unassigned / no department bucket
     const otherDeptStats = {
       departmentId: null,
       name: 'Unassigned / Other',
@@ -201,7 +175,6 @@ exports.showAnalytics = async (req, res) => {
         }
       }
 
-      // SLA check
       if (t.dueAt) {
         const due = new Date(t.dueAt);
         if (['resolved', 'closed'].includes(t.status)) {
@@ -214,7 +187,6 @@ exports.showAnalytics = async (req, res) => {
         }
       }
 
-      // Assignment delay
       if (t.acknowledgedAt && t.createdAt) {
         const mins = differenceInMinutes(new Date(t.acknowledgedAt), new Date(t.createdAt));
         if (mins >= 0) {
@@ -223,7 +195,6 @@ exports.showAnalytics = async (req, res) => {
         }
       }
 
-      // Resolution time
       if (['resolved', 'closed'].includes(t.status)) {
         const finish = t.resolvedAt ? new Date(t.resolvedAt) : (t.closedAt ? new Date(t.closedAt) : null);
         if (finish && t.createdAt) {
@@ -236,7 +207,6 @@ exports.showAnalytics = async (req, res) => {
       }
     });
 
-    // Compute averages & rates
     const departmentBottlenecks = Object.values(deptStatsMap).concat(
       otherDeptStats.ticketCount > 0 ? [otherDeptStats] : []
     ).map(d => {
@@ -246,10 +216,8 @@ exports.showAnalytics = async (req, res) => {
       return d;
     });
 
-    // Sort by most overdue open tickets descending, then ticket volume
     departmentBottlenecks.sort((a, b) => b.overdueCount - a.overdueCount || b.ticketCount - a.ticketCount);
 
-    // ── 6. Category SLA Analysis ──────────────────────────────────────────────
     const categoryStats = CATEGORIES.map(cat => {
       const catTickets = tickets.filter(t => t.category === cat);
       let eligible = 0;
@@ -293,8 +261,6 @@ exports.showAnalytics = async (req, res) => {
       };
     });
 
-    // ── 7. Active Escalation Monitoring ───────────────────────────────────────
-    // Hospital-wide currently overdue tickets needing attention
     const activeOverdueTickets = await Ticket.find({
       hospitalId,
       status: { $in: openStatuses },

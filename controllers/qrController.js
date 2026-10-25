@@ -7,8 +7,6 @@ const rateLimit = require('express-rate-limit');
 const QRCode = require('qrcode');
 const env = require('../config/environment');
 
-// ─── Rate limiter for the public report-submission endpoint ────────────────
-// Applied directly in this controller so it can be exported and used in routes.
 const qrReportLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 30,
@@ -18,25 +16,17 @@ const qrReportLimiter = rateLimit({
 });
 exports.qrReportLimiter = qrReportLimiter;
 
-// ─── Helpers ───────────────────────────────────────────────────────────────
 
-/** Builds the public QR reporting URL for a raw token. */
 function buildReportUrl(rawToken) {
   const base = (env.app.url || 'http://localhost:3000').replace(/\/$/, '');
   return `${base}/qr/report/${rawToken}`;
 }
 
-/** Renders a page with a flash-style error inside the main layout. */
 function renderError(res, status, message, title = 'Error') {
   return res.status(status).render('errors/generic', { title, message });
 }
 
-// ─── Management routes (authenticated, operations_manager+) ────────────────
 
-/**
- * GET /qr/assets
- * List all QR assets for this hospital.
- */
 exports.listAssets = async (req, res) => {
   try {
     const assets = await QRAsset.find({ hospitalId: req.hospitalId })
@@ -63,10 +53,6 @@ exports.listAssets = async (req, res) => {
   }
 };
 
-/**
- * GET /qr/assets/new
- * Show form to create a new QR asset.
- */
 exports.showNewAsset = async (req, res) => {
   try {
     const departments = await Department.find({
@@ -90,10 +76,6 @@ exports.showNewAsset = async (req, res) => {
   }
 };
 
-/**
- * POST /qr/assets
- * Create a new QR asset with a freshly generated token.
- */
 exports.createAsset = async (req, res) => {
   try {
     const { name, assetCode, assetType, departmentId, location, description } = req.body;
@@ -102,8 +84,6 @@ exports.createAsset = async (req, res) => {
       req.session.flash = { error: 'Asset name is required.' };
       return res.redirect('/qr/assets/new');
     }
-
-    // Validate department belongs to this hospital (if provided)
     if (departmentId) {
       const dept = await Department.findOne({
         _id: departmentId,
@@ -148,10 +128,6 @@ exports.createAsset = async (req, res) => {
   }
 };
 
-/**
- * GET /qr/assets/:id/edit
- * Show the edit form for an existing asset.
- */
 exports.showEditAsset = async (req, res) => {
   try {
     const asset = await QRAsset.findOne({
@@ -185,10 +161,6 @@ exports.showEditAsset = async (req, res) => {
   }
 };
 
-/**
- * PUT /qr/assets/:id
- * Update metadata (not the token) of an existing asset.
- */
 exports.updateAsset = async (req, res) => {
   try {
     const asset = await QRAsset.findOne({
@@ -242,12 +214,6 @@ exports.updateAsset = async (req, res) => {
   }
 };
 
-/**
- * GET /qr/assets/:id/qr
- * Show the QR code preview/download page for an asset.
- * The raw token is consumed from session (if just created) or regenerated
- * only on explicit /regenerate action.
- */
 exports.showQR = async (req, res) => {
   try {
     const asset = await QRAsset.findOne({
@@ -284,11 +250,6 @@ exports.showQR = async (req, res) => {
   }
 };
 
-/**
- * POST /qr/assets/:id/regenerate
- * Revoke the old token and issue a new one. The previous QR codes
- * immediately stop working.
- */
 exports.regenerateToken = async (req, res) => {
   try {
     const asset = await QRAsset.findOne({
@@ -316,10 +277,6 @@ exports.regenerateToken = async (req, res) => {
   }
 };
 
-/**
- * POST /qr/assets/:id/retire
- * Mark an asset as inactive so its QR code stops working.
- */
 exports.retireAsset = async (req, res) => {
   try {
     const asset = await QRAsset.findOne({
@@ -346,10 +303,6 @@ exports.retireAsset = async (req, res) => {
   }
 };
 
-/**
- * POST /qr/assets/:id/reactivate
- * Reactivate a previously retired asset.
- */
 exports.reactivateAsset = async (req, res) => {
   try {
     const asset = await QRAsset.findOne({
@@ -376,13 +329,7 @@ exports.reactivateAsset = async (req, res) => {
   }
 };
 
-// ─── Public reporting routes (unauthenticated, rate-limited) ───────────────
 
-/**
- * GET /qr/report/:token
- * Public page: validates the token, pre-fills the report form.
- * No authentication required — but token must be valid and active.
- */
 exports.showReport = async (req, res) => {
   try {
     const asset = await QRAsset.findByRawToken(req.params.token);
@@ -393,8 +340,6 @@ exports.showReport = async (req, res) => {
         message: 'This QR code is no longer valid or has been retired. Please contact hospital staff.',
       });
     }
-
-    // Build category and priority lists for the form
     const categories = CATEGORIES;
     const priorities = PRIORITIES;
 
@@ -417,11 +362,6 @@ exports.showReport = async (req, res) => {
   }
 };
 
-/**
- * POST /qr/report/:token
- * Public submission: validates input, resolves context from token, creates ticket.
- * Never trusts hospitalId/departmentId from the request body.
- */
 exports.submitReport = async (req, res) => {
   try {
     const asset = await QRAsset.findByRawToken(req.params.token);
@@ -434,8 +374,6 @@ exports.submitReport = async (req, res) => {
     }
 
     const { reporterName, category, title, description, priority } = req.body;
-
-    // ── Server-side validation ───────────────────────────────────────────
     const errors = [];
 
     if (!reporterName || !reporterName.trim()) {
@@ -474,16 +412,7 @@ exports.submitReport = async (req, res) => {
         layout: 'mobile',
       });
     }
-
-    // ── Resolve context server-side from token ───────────────────────────
-    // We need a valid reportedBy user. For QR reporting we use a sentinel
-    // approach: find a hospital_admin or operations_manager as the "system"
-    // reporter, since the submitter may not have a WardFlow account.
-    // The reporterName is stored in the ticket title prefix.
     const User = require('../models/User');
-
-    // If staff member is already logged into WardFlow for this hospital, use their account;
-    // otherwise use a hospital admin/manager sentinel account for QR submissions.
     let reporterUser = null;
     if (req.session && req.session.user && req.session.user.hospitalId === asset.hospitalId._id.toString()) {
       reporterUser = await User.findById(req.session.user._id).lean();
@@ -502,8 +431,6 @@ exports.submitReport = async (req, res) => {
         message: 'Hospital reporting is not fully configured. Please contact staff.',
       });
     }
-
-    // Resolve departmentId: prefer asset's department, fall back to any active dept
     let departmentId = asset.departmentId
       ? asset.departmentId._id
       : null;
@@ -522,8 +449,6 @@ exports.submitReport = async (req, res) => {
         message: 'No active department found for this hospital. Please contact staff.',
       });
     }
-
-    // Build the ticket title with QR context
     const ticketTitle = `[QR] ${title.trim()}`;
     const ticketDescription =
       `Reported via QR code by: ${reporterName.trim()}\n` +

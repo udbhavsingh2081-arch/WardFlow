@@ -8,7 +8,6 @@ const { differenceInHours } = require('date-fns');
 exports.runEscalationCheck = async () => {
   console.log('[Escalation] Running check at', new Date().toISOString());
   try {
-    // Find all active tickets with a due date
     const activeTickets = await Ticket.find({
       status: { $in: ['open', 'assigned', 'in_progress', 'blocked'] },
       dueAt: { $exists: true, $ne: null },
@@ -24,13 +23,11 @@ exports.runEscalationCheck = async () => {
       const slaPolicy = await SLAPolicy.findOne({ hospitalId: ticket.hospitalId, priority: ticket.priority, isActive: true });
       if (!slaPolicy) continue;
 
-      // Step 1: Unassigned past acknowledgement window
       if (!ticket.assignedTo && hoursSinceCreated >= slaPolicy.acknowledgementHours) {
         await escalateTicket(ticket, 'unassigned_overdue', 'supervisor');
         escalatedCount++;
       }
 
-      // Step 2: Approaching deadline (2 hours warning)
       if (ticket.assignedTo && hoursUntilDue > 0 && hoursUntilDue <= 2) {
         const Notification = require('../models/Notification');
         const notified = await Notification.exists({
@@ -50,7 +47,6 @@ exports.runEscalationCheck = async () => {
         }
       }
 
-      // Step 3: Overdue — notify assignee and supervisor
       if (hoursUntilDue < 0 && !ticket.lastEscalatedAt || (ticket.lastEscalatedAt && differenceInHours(now, ticket.lastEscalatedAt) >= 4)) {
         await escalateTicket(ticket, 'overdue', 'operations_manager');
         escalatedCount++;
@@ -66,7 +62,6 @@ exports.runEscalationCheck = async () => {
 async function escalateTicket(ticket, reason, targetRole) {
   const Notification = require('../models/Notification');
   try {
-    // Find supervisors/managers in the same hospital
     const recipients = await User.find({
       hospitalId: ticket.hospitalId,
       role: { $in: ['supervisor', 'operations_manager', 'hospital_admin'] },

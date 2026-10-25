@@ -9,7 +9,6 @@ exports.showDashboard = async (req, res) => {
     const hospitalId = req.hospitalId;
     const now = new Date();
 
-    // Base query depending on role
     const baseQuery = { hospitalId };
     if (user.role === 'staff' || user.role === 'reporter') {
       baseQuery.$or = [{ reportedBy: user._id }, { assignedTo: user._id }];
@@ -40,7 +39,6 @@ exports.showDashboard = async (req, res) => {
       Notification.find({ recipientId: user._id, isRead: false }).sort({ createdAt: -1 }).limit(5).lean(),
     ]);
 
-    // SLA attainment (last 30 days)
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 3600000);
     const recentClosed = await Ticket.find({
       ...baseQuery,
@@ -52,7 +50,6 @@ exports.showDashboard = async (req, res) => {
       ? Math.round((recentClosed.filter(t => !t.dueAt || t.closedAt <= t.dueAt).length / recentClosed.length) * 100)
       : null;
 
-    // Avg resolution time (calendar hours)
     const avgResolutionHours = recentClosed.length
       ? Math.round(recentClosed.reduce((sum, t) => {
           if (t.closedAt && t.createdAt) return sum + differenceInHours(t.closedAt, t.createdAt);

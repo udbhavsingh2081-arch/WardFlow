@@ -3,7 +3,6 @@ const User = require('../models/User');
 const Hospital = require('../models/Hospital');
 const SLAPolicy = require('../models/SLAPolicy');
 
-// --- Departments ---
 exports.listDepartments = async (req, res) => {
   const departments = await Department.find({ hospitalId: req.hospitalId }).populate('supervisorId', 'name').lean();
   res.render('admin/departments', { title: 'Departments', activePage: 'admin', departments });
@@ -47,7 +46,6 @@ exports.updateDepartment = async (req, res) => {
   }
 };
 
-// --- Users ---
 exports.listUsers = async (req, res) => {
   const users = await User.find({ hospitalId: req.hospitalId }).lean();
   res.render('admin/users', { title: 'Users', activePage: 'admin', users });
@@ -115,7 +113,6 @@ exports.toggleUserStatus = async (req, res) => {
   res.redirect('/admin/users');
 };
 
-// --- SLA Policies ---
 exports.listSLAPolicies = async (req, res) => {
   const policies = await SLAPolicy.find({ hospitalId: req.hospitalId }).lean();
   res.render('admin/sla', { title: 'SLA Policies', activePage: 'admin', policies });
@@ -137,7 +134,6 @@ exports.saveSLAPolicy = async (req, res) => {
   }
 };
 
-// --- Hospital Settings ---
 exports.showSettings = async (req, res) => {
   const hospital = await Hospital.findById(req.hospitalId).lean();
   res.render('admin/settings', { title: 'Hospital Settings', activePage: 'admin', hospital });

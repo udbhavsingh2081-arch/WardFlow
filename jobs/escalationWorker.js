@@ -9,7 +9,6 @@ exports.start = () => {
     return;
   }
 
-  // Run every 15 minutes
   task = cron.schedule('*/15 * * * *', async () => {
     try {
       await escalationService.runEscalationCheck();
@@ -29,7 +28,6 @@ exports.stop = () => {
   }
 };
 
-// Enable running as an independent background worker process: `node jobs/escalationWorker.js`
 if (require.main === module) {
   require('dotenv').config();
   const connectDB = require('../config/database');
@@ -37,7 +35,6 @@ if (require.main === module) {
   console.log('[Escalation Worker] Initializing standalone worker process...');
   connectDB().then(() => {
     exports.start();
-    // Run an initial check upon process startup
     escalationService.runEscalationCheck().catch(err => {
       console.error('[Escalation Worker] Initial check error:', err.message);
     });

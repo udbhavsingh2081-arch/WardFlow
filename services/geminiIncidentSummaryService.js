@@ -1,34 +1,18 @@
 const { GoogleGenAI } = require('@google/genai');
 const env = require('../config/environment');
 
-/**
- * Redacts potential sensitive personal data (patient identifiers, MRNs, phone numbers,
- * email addresses, credit cards, SSN/Aadhaar) from hospital operational notes.
- *
- * @param {string} text - Raw input text
- * @returns {string} - Scrubbed text safe for external AI processing
- */
 function sanitizeHospitalText(text) {
   if (!text || typeof text !== 'string') return '';
 
   return text
-    // Redact Patient / Medical Record Identifiers (MRN, UHID, Patient ID)
     .replace(/\b(MRN|UHID|PATIENT\s*ID|ADMISSION\s*NO|IPD\s*NO|OPD\s*NO)[\s:#-]*([A-Z0-9-]+)/gi, '$1: [REDACTED_ID]')
-    // Redact explicit patient references (e.g. "Patient: Jane Doe", "Pt: John Smith")
     .replace(/\b(patient(?:\s+name)?|pt\.?)\s*[:=-]\s*([A-Za-z]+(?:\s+[A-Za-z]+){1,3})/gi, '$1: [REDACTED_PATIENT]')
-    // Redact Phone numbers (international, 10-digit Indian, formatted US/UK)
     .replace(/(?:\+?\d{1,3}[-.\s]?)?(?:\(?\d{2,4}\)?[-.\s]?)?\d{3,5}[-.\s]?\d{4,5}\b/g, '[REDACTED_PHONE]')
-    // Redact Email addresses
     .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[REDACTED_EMAIL]')
-    // Redact 12-digit Indian National ID (Aadhaar) or 9-digit SSN
     .replace(/\b\d{4}[-\s]?\d{4}[-\s]?\d{4}\b/g, '[REDACTED_ID]')
     .replace(/\b\d{3}-\d{2}-\d{4}\b/g, '[REDACTED_ID]');
 }
 
-/**
- * Prepares a minimal, factual payload from ticket data, limiting history length
- * to avoid exceeding token limits and strictly redacting sensitive fields.
- */
 function buildIncidentPayload(ticket, activities = [], comments = []) {
   const isOverdue = Boolean(
     ticket.dueAt &&
@@ -36,7 +20,6 @@ function buildIncidentPayload(ticket, activities = [], comments = []) {
     !['closed', 'resolved', 'cancelled'].includes(ticket.status)
   );
 
-  // Take first 5 and last 25 activities if history is very long
   let selectedActivities = activities;
   let omittedActivityCount = 0;
   if (activities.length > 30) {
@@ -47,7 +30,6 @@ function buildIncidentPayload(ticket, activities = [], comments = []) {
     ];
   }
 
-  // Take most recent 20 comments
   let selectedComments = comments;
   let omittedCommentCount = 0;
   if (comments.length > 20) {
@@ -89,9 +71,6 @@ function buildIncidentPayload(ticket, activities = [], comments = []) {
   };
 }
 
-/**
- * Computes human-readable SLA state directly from database fields.
- */
 function computeSlaState(ticket) {
   if (!ticket.dueAt) return 'No SLA deadline defined';
   const now = new Date();
@@ -116,15 +95,6 @@ function computeSlaState(ticket) {
   return `On Track (~${hoursRemaining}h remaining)`;
 }
 
-/**
- * Generates an AI incident summary for a ticket using the official Google Gemini SDK.
- *
- * @param {Object} options
- * @param {Object} options.ticket - Mongoose ticket document or lean object
- * @param {Array} options.activities - Array of TicketActivity documents
- * @param {Array} options.comments - Array of Comment documents
- * @returns {Promise<Object>} - Structured 7-section summary
- */
 async function generateIncidentSummary({ ticket, activities = [], comments = [] }) {
   const apiKey = process.env.GEMINI_API_KEY || (env.gemini && env.gemini.apiKey);
 
@@ -202,12 +172,10 @@ ${JSON.stringify(payload, null, 2)}
     try {
       parsedSummary = JSON.parse(rawText);
     } catch (parseErr) {
-      // Clean possible Markdown fence wrappers if present
       const cleaned = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
       parsedSummary = JSON.parse(cleaned);
     }
 
-    // Anchor current status strictly to database values to prevent hallucination
     const verifiedCurrentStatus = {
       status: ticket.status || 'open',
       priority: ticket.priority || 'medium',
@@ -248,7 +216,6 @@ ${JSON.stringify(payload, null, 2)}
   } catch (err) {
     console.error('[Gemini Incident Summary Service Error]:', err.message);
 
-    // Map specific Gemini errors to user-friendly messages
     if (err.status === 429 || err.message?.includes('429') || err.message?.includes('RESOURCE_EXHAUSTED')) {
       const error = new Error('Gemini API rate limit exceeded. Please wait a moment and try again.');
       error.status = 429;

@@ -10,7 +10,6 @@ let server = null;
 const startServer = async () => {
   await connectDB();
 
-  // Start in-process escalation worker if enabled
   if (env.runEscalationWorker) {
     escalationWorker.start();
   } else {
@@ -24,7 +23,6 @@ const startServer = async () => {
   return server;
 };
 
-// Graceful shutdown
 const gracefulShutdown = async (signal) => {
   console.log(`\n[Server] ${signal} signal received: closing HTTP server...`);
   if (escalationWorker) {
