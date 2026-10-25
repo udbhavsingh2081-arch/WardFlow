@@ -27,35 +27,34 @@
 
           <div class="wf-card">
             <div class="wf-card-header">
-              <span class="fw-semibold small"><i class="bi bi-tag me-1 text-primary"></i>Asset Identification</span>
+              <span class="fw-semibold small"><i class="bi bi-tag me-1 text-primary"></i>Equipment or Room Details</span>
               <span class="meta-label text-danger">* Required</span>
             </div>
             <div class="wf-card-body">
               <form action="<%= formAction %>" method="<%= formMethod %>">
                 <div class="row g-3">
                   <div class="col-md-8">
-                    <label for="name" class="form-label">Asset or Location Name <span class="text-danger">*</span></label>
+                    <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
                     <input type="text" class="form-control form-control-sm" id="name" name="name" required maxlength="100"
-                      placeholder="e.g. ICU Ventilator #04, Male Ward Water Cooler, Diesel Generator DG-1"
+                      placeholder="e.g. ICU Ventilator #4, Water Cooler 2nd Floor, Generator DG-1"
                       value="<%= asset.name || '' %>">
-                    <div class="form-text" style="font-size: 0.7rem;">Clear, recognizable name displayed to reporting staff.</div>
+                    <div class="form-text" style="font-size: 0.7rem;">Name printed on the sticker so people recognize it.</div>
                   </div>
 
                   <div class="col-md-4">
-                    <label for="assetCode" class="form-label">Asset Tag / Reference Code</label>
+                    <label for="assetCode" class="form-label">Code / Serial (Optional)</label>
                     <input type="text" class="form-control form-control-sm font-monospace" id="assetCode" name="assetCode" maxlength="30"
-                      placeholder="e.g. BME-ICU-04"
+                      placeholder="e.g. VENT-04"
                       value="<%= asset.assetCode || '' %>">
-                    <div class="form-text" style="font-size: 0.7rem;">Internal asset tag or serial reference.</div>
                   </div>
 
                   <div class="col-md-6">
-                    <label for="assetType" class="form-label">Asset Type</label>
+                    <label for="assetType" class="form-label">Type</label>
                     <select class="form-select form-select-sm" id="assetType" name="assetType">
-                      <option value="equipment" <%= asset.assetType === 'equipment' ? 'selected' : '' %>>Equipment / Biomedical Device</option>
-                      <option value="room" <%= asset.assetType === 'room' ? 'selected' : '' %>>Room / Ward / Clinical Unit</option>
-                      <option value="facility" <%= asset.assetType === 'facility' ? 'selected' : '' %>>Facility / Utility Infrastructure</option>
-                      <option value="other" <%= (!asset.assetType || asset.assetType === 'other') ? 'selected' : '' %>>Other Physical Asset</option>
+                      <option value="equipment" <%= asset.assetType === 'equipment' ? 'selected' : '' %>>Medical Equipment / Machine</option>
+                      <option value="room" <%= asset.assetType === 'room' ? 'selected' : '' %>>Room / Ward</option>
+                      <option value="facility" <%= asset.assetType === 'facility' ? 'selected' : '' %>>Building Facility / Utility</option>
+                      <option value="other" <%= (!asset.assetType || asset.assetType === 'other') ? 'selected' : '' %>>Other</option>
                     </select>
                   </div>
 
@@ -69,21 +68,21 @@
                         </option>
                       <% }) %>
                     </select>
-                    <div class="form-text" style="font-size: 0.7rem;">Issues reported from this QR code will route here.</div>
+                    <div class="form-text" style="font-size: 0.7rem;">Who will handle issues reported on this item.</div>
                   </div>
 
                   <div class="col-12">
-                    <label for="location" class="form-label">Physical Location Details</label>
+                    <label for="location" class="form-label">Where is it located?</label>
                     <input type="text" class="form-control form-control-sm" id="location" name="location" maxlength="200"
-                      placeholder="e.g. Building B, 2nd Floor, Bed 204 near Nurse Station"
+                      placeholder="e.g. Block B, 2nd Floor, Room 204 near Nurse Station"
                       value="<%= asset.location || '' %>">
-                    <div class="form-text" style="font-size: 0.7rem;">Helps technician immediately locate the machine.</div>
+                    <div class="form-text" style="font-size: 0.7rem;">Helps technician quickly find the exact spot.</div>
                   </div>
 
                   <div class="col-12">
-                    <label for="description" class="form-label">Operational Notes / Handling Instructions</label>
+                    <label for="description" class="form-label">Notes (Optional)</label>
                     <textarea class="form-control form-control-sm" id="description" name="description" rows="3" maxlength="500"
-                      placeholder="Optional model number, manufacturer, or maintenance instructions..."><%= asset.description || '' %></textarea>
+                      placeholder="Any useful details (model number, manufacturer, or special instructions)..."><%= asset.description || '' %></textarea>
                   </div>
                 </div>
 

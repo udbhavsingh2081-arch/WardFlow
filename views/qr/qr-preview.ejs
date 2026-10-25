@@ -32,12 +32,34 @@
     }
 
     .qr-label-card {
-      max-width: 420px;
+      max-width: 400px;
       margin: 0 auto;
-      border: 1px solid var(--wf-border-strong);
+      border: 1px solid #cbd5e1;
       border-radius: 12px;
       background: #ffffff;
-      box-shadow: var(--wf-shadow-sm);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .env-tab-btn {
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      padding: 0.6rem 0.85rem;
+      border-radius: 8px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      width: 100%;
+    }
+
+    .env-tab-btn:hover {
+      border-color: #0d6efd;
+      background: #f8fafc;
+    }
+
+    .env-tab-btn.active {
+      border-color: #0d6efd;
+      background: #eff6ff;
+      box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.2);
     }
   </style>
 </head>
@@ -49,104 +71,157 @@
     <div class="wf-content">
       <%- include('../partials/flash') %>
 
+      <!-- Header -->
       <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2 no-print">
-        <div class="d-flex align-items-center gap-2">
-          <a href="/qr/assets" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i>Back to Register
+        <div>
+          <a href="/qr/assets" class="text-decoration-none text-muted small d-inline-block mb-1">
+            <i class="bi bi-arrow-left me-1"></i>Back to Assets
           </a>
-          <h5 class="mb-0 fw-bold">QR Label Preview</h5>
+          <h4 class="mb-0 fw-bold">QR Code &amp; Printable Sticker</h4>
         </div>
         <div class="d-flex gap-2">
-          <button type="button" class="btn btn-sm btn-outline-primary" onclick="window.print()">
-            <i class="bi bi-printer me-1"></i>Print Adhesive Label
+          <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.print()">
+            <i class="bi bi-printer me-1"></i>Print Sticker
           </button>
-          <a href="<%= qrDataUrl %>" download="QR-<%= (asset.assetCode || asset.name).replace(/\s+/g, '_') %>.png" class="btn btn-sm btn-primary">
-            <i class="bi bi-download me-1"></i>Download PNG
+          <a id="downloadQrBtn" href="<%= qrDataUrl %>" download="QR-<%= (asset.assetCode || asset.name).replace(/\s+/g, '_') %>.png" class="btn btn-primary btn-sm">
+            <i class="bi bi-download me-1"></i>Download Image
           </a>
         </div>
       </div>
 
-      <div class="row justify-content-center">
-        <div class="col-lg-6 mb-4">
-          <div id="printable-qr-label" class="qr-label-card p-4 text-center">
-            <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
-              <i class="bi bi-hospital fs-5 text-primary"></i>
-              <span class="fw-bold fs-6 text-dark"><%= appName %> Operations</span>
+      <!-- Environment / Device Target Switcher -->
+      <div class="card mb-4 border-0 shadow-sm no-print">
+        <div class="card-body p-3">
+          <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+            <span class="fw-semibold text-dark small">
+              <i class="bi bi-qr-code text-primary me-1"></i>Select where you are scanning:
+            </span>
+            <span class="text-muted small" id="targetHint">Point phone camera to scan over local Wi-Fi</span>
+          </div>
+
+          <div class="row g-2">
+            <!-- 1. Phone Camera (Wi-Fi) -->
+            <div class="col-md-4">
+              <button type="button" class="env-tab-btn <%= defaultTargetId === 'wifi' ? 'active' : '' %>" id="btn-target-wifi" onclick="selectTarget('wifi')">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <span class="fw-bold small text-dark"><i class="bi bi-phone me-1 text-success"></i>Phone Camera (Wi-Fi)</span>
+                  <span class="badge bg-success-subtle text-success small">Recommended</span>
+                </div>
+                <div class="text-muted small text-truncate font-monospace" style="font-size: 0.72rem;">
+                  <%= targets.wifi.url %>
+                </div>
+              </button>
             </div>
-            <div class="badge bg-light text-secondary border mb-3 text-uppercase font-monospace" style="font-size: 0.65rem;">
-              Instant Issue Reporting
+
+            <!-- 2. Desktop Browser (localhost) -->
+            <div class="col-md-4">
+              <button type="button" class="env-tab-btn <%= defaultTargetId === 'localhost' ? 'active' : '' %>" id="btn-target-localhost" onclick="selectTarget('localhost')">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <span class="fw-bold small text-dark"><i class="bi bi-laptop me-1 text-primary"></i>This Computer</span>
+                  <span class="badge bg-light text-secondary border small">Browser Test</span>
+                </div>
+                <div class="text-muted small text-truncate font-monospace" style="font-size: 0.72rem;">
+                  <%= targets.localhost.url %>
+                </div>
+              </button>
+            </div>
+
+            <!-- 3. Production Deployment (PieHost) -->
+            <div class="col-md-4">
+              <button type="button" class="env-tab-btn <%= defaultTargetId === 'production' ? 'active' : '' %>" id="btn-target-production" onclick="selectTarget('production')">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <span class="fw-bold small text-dark"><i class="bi bi-globe me-1 text-info"></i>Live Website</span>
+                  <span class="badge bg-info-subtle text-info border small">PieHost</span>
+                </div>
+                <div class="text-muted small text-truncate font-monospace" style="font-size: 0.72rem;">
+                  <%= targets.production.url %>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row justify-content-center">
+        <!-- Adhesive Label Preview Card -->
+        <div class="col-lg-5 mb-4">
+          <div id="printable-qr-label" class="qr-label-card p-4 text-center">
+            <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+              <i class="bi bi-hospital fs-5 text-primary"></i>
+              <span class="fw-bold fs-6 text-dark"><%= appName %></span>
+            </div>
+            <div class="text-uppercase text-secondary fw-semibold mb-3" style="font-size: 0.7rem; letter-spacing: 0.05em;">
+              Scan to Report a Problem
             </div>
 
             <div class="p-2 bg-white rounded-2 d-inline-block border mb-3">
-              <img src="<%= qrDataUrl %>" alt="QR Code" class="img-fluid" style="width: 220px; height: 220px;" />
+              <img id="qrDisplayImage" src="<%= qrDataUrl %>" alt="QR Code" class="img-fluid" style="width: 210px; height: 210px;" />
             </div>
 
-            <h6 class="fw-bold text-dark mb-1"><%= asset.name %></h6>
+            <h5 class="fw-bold text-dark mb-1"><%= asset.name %></h5>
             <% if (asset.assetCode) { %>
               <div class="font-monospace text-secondary fw-semibold small mb-2"><%= asset.assetCode %></div>
             <% } %>
 
             <% if (asset.departmentId) { %>
               <div class="small text-muted mb-1">
-                <i class="bi bi-building me-1"></i><strong>Dept:</strong> <%= asset.departmentId.name %>
+                <strong>Department:</strong> <%= asset.departmentId.name %>
               </div>
             <% } %>
 
             <% if (asset.location) { %>
               <div class="small text-muted mb-2">
-                <i class="bi bi-geo-alt me-1"></i><strong>Location:</strong> <%= asset.location %>
+                <strong>Location:</strong> <%= asset.location %>
               </div>
             <% } %>
 
             <hr class="my-3" />
-            <div class="text-secondary" style="font-size: 0.72rem; line-height: 1.4;">
+            <div class="text-secondary" style="font-size: 0.75rem;">
               <i class="bi bi-camera me-1 text-primary"></i>
-              Scan with phone camera to report a fault. Form pre-populates machine details.
+              Point your phone camera here to report an issue instantly.
             </div>
           </div>
         </div>
 
+        <!-- Right Side Controls & Link -->
         <div class="col-lg-5 no-print">
-          <div class="wf-card mb-3">
-            <div class="wf-card-header">
-              <span class="fw-semibold small"><i class="bi bi-link-45deg me-1 text-primary"></i>Scannable Public URL</span>
+          <!-- Link Box -->
+          <div class="card mb-3 border-0 shadow-sm">
+            <div class="card-header bg-transparent py-3 border-bottom">
+              <span class="fw-semibold small"><i class="bi bi-link-45deg me-1 text-primary"></i>QR Code Link</span>
             </div>
-            <div class="wf-card-body">
-              <label class="form-label mb-1">Reporting Endpoint</label>
+            <div class="card-body">
+              <label class="form-label small text-muted mb-1">Link encoded in this QR code:</label>
               <div class="input-group input-group-sm mb-3">
                 <input type="text" id="reportUrlInput" class="form-control font-monospace" value="<%= reportUrl %>" readonly>
-                <button class="btn btn-outline-secondary" type="button" onclick="copyReportUrl()">
+                <button class="btn btn-outline-secondary" type="button" onclick="copyUrl()">
                   <i class="bi bi-clipboard"></i> Copy
                 </button>
               </div>
 
-              <div class="small text-muted mb-3" style="font-size: 0.75rem;">
-                <i class="bi bi-shield-check text-success me-1"></i>
-                <strong>Opaque Token:</strong> This URL uses a revocable 256-bit crypto token. No internal database IDs or hospital secrets are exposed.
-              </div>
-
               <div class="d-flex gap-2">
-                <a href="<%= reportUrl %>" target="_blank" class="btn btn-sm btn-outline-primary flex-grow-1">
-                  <i class="bi bi-box-arrow-up-right me-1"></i>Test Mobile Form
+                <a id="openFormBtn" href="<%= reportUrl %>" target="_blank" class="btn btn-sm btn-primary flex-grow-1">
+                  <i class="bi bi-box-arrow-up-right me-1"></i>Open Report Form
                 </a>
                 <a href="/qr/assets/<%= asset._id %>/edit" class="btn btn-sm btn-outline-secondary">
-                  <i class="bi bi-pencil me-1"></i>Edit
+                  <i class="bi bi-pencil me-1"></i>Edit Asset
                 </a>
               </div>
             </div>
           </div>
 
-          <div class="wf-card border-danger border-opacity-25">
-            <div class="wf-card-header">
-              <span class="fw-semibold small text-danger"><i class="bi bi-arrow-repeat me-1"></i>Token Rotation &amp; Revocation</span>
+          <!-- Reset / Refresh QR -->
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent py-3 border-bottom">
+              <span class="fw-semibold small text-secondary"><i class="bi bi-arrow-repeat me-1"></i>Need a New QR Code?</span>
             </div>
-            <div class="wf-card-body">
-              <p class="small text-muted mb-3" style="font-size: 0.75rem;">
-                If a physical sticker is damaged or compromised, regenerating the token will immediately invalidate previous QR prints.
+            <div class="card-body">
+              <p class="small text-muted mb-3" style="font-size: 0.8rem;">
+                If a physical sticker was lost, damaged, or replaced, generate a new QR code. Previously printed stickers will stop working.
               </p>
-              <form action="/qr/assets/<%= asset._id %>/regenerate" method="POST" onsubmit="return confirm('Regenerate QR token? All previously printed QR codes for this asset will immediately stop working.');">
+              <form action="/qr/assets/<%= asset._id %>/regenerate" method="POST" onsubmit="return confirm('Generate a new QR code? Older printed stickers for this item will stop working.');">
                 <button type="submit" class="btn btn-outline-danger btn-sm w-100">
-                  <i class="bi bi-arrow-repeat me-1"></i>Regenerate QR Token
+                  <i class="bi bi-arrow-repeat me-1"></i>Generate New QR Code
                 </button>
               </form>
             </div>
@@ -160,11 +235,42 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/wardflow.js"></script>
 <script>
-  function copyReportUrl() {
+  const targets = <%- JSON.stringify(targets) %>;
+
+  function selectTarget(targetId) {
+    const target = targets[targetId];
+    if (!target) return;
+
+    // Update active button
+    document.querySelectorAll('.env-tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('btn-target-' + targetId)?.classList.add('active');
+
+    // Update image
+    const img = document.getElementById('qrDisplayImage');
+    if (img) img.src = target.qrDataUrl;
+
+    // Update download link
+    const dl = document.getElementById('downloadQrBtn');
+    if (dl) dl.href = target.qrDataUrl;
+
+    // Update url input
+    const input = document.getElementById('reportUrlInput');
+    if (input) input.value = target.url;
+
+    // Update open form button
+    const openBtn = document.getElementById('openFormBtn');
+    if (openBtn) openBtn.href = target.url;
+
+    // Update hint
+    const hint = document.getElementById('targetHint');
+    if (hint && target.hint) hint.textContent = target.hint;
+  }
+
+  function copyUrl() {
     const input = document.getElementById('reportUrlInput');
     input.select();
     navigator.clipboard.writeText(input.value).then(() => {
-      alert('Report URL copied to clipboard!');
+      alert('Link copied to clipboard!');
     });
   }
 </script>

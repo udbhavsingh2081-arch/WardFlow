@@ -21,8 +21,8 @@
           <div class="d-flex align-items-center gap-2 mb-1">
             <a href="/tickets" class="text-decoration-none text-muted small"><i class="bi bi-arrow-left me-1"></i>Back to tickets</a>
           </div>
-          <h5 class="fw-bold mb-0">Report Operational Issue</h5>
-          <p class="text-muted small mb-0">Submit a new work order for hospital facility, biomedical, or housekeeping teams.</p>
+          <h5 class="fw-bold mb-0">Report a Problem</h5>
+          <p class="text-muted small mb-0">Tell our maintenance and facility staff what needs fixing.</p>
         </div>
       </div>
 
@@ -32,14 +32,14 @@
             <div class="p-3">
               <div class="d-flex align-items-center justify-content-between mb-2">
                 <span class="small fw-semibold text-primary d-flex align-items-center gap-1">
-                  <i class="bi bi-stars"></i> Quick AI Auto-fill
+                  <i class="bi bi-stars"></i> Smart AI Form-Fill
                 </span>
-                <span class="badge bg-light text-muted border" style="font-size: 0.65rem;">Optional Assistant</span>
+                <span class="badge bg-light text-muted border" style="font-size: 0.65rem;">Optional</span>
               </div>
               <div class="input-group input-group-sm">
-                <input type="text" id="ai-description-input" class="form-control" placeholder="e.g. 'Air conditioner in ICU Room 3 is blowing warm air and leaking water on floor'..." />
+                <input type="text" id="ai-description-input" class="form-control" placeholder="e.g. 'Air conditioner in Room 3 is blowing warm air and leaking water'..." />
                 <button type="button" id="ai-suggest-btn" class="btn btn-primary" onclick="suggestTicket(document.getElementById('ai-description-input').value)">
-                  <i class="bi bi-magic me-1"></i>Auto-fill Form
+                  <i class="bi bi-magic me-1"></i>Fill Form
                 </button>
               </div>
               <div id="ai-suggestion-panel" class="mt-2 pt-2 border-top d-none" style="font-size: 0.75rem;">
@@ -51,21 +51,21 @@
 
           <div class="wf-card">
             <div class="wf-card-header">
-              <span class="fw-semibold small"><i class="bi bi-pencil-square me-2 text-primary"></i>Work Order Details</span>
-              <span class="meta-label text-danger">* Required fields</span>
+              <span class="fw-semibold small"><i class="bi bi-pencil-square me-2 text-primary"></i>Problem Details</span>
+              <span class="meta-label text-danger">* Required</span>
             </div>
             <div class="wf-card-body">
               <form method="POST" action="/tickets" enctype="multipart/form-data">
                 <div class="row g-3 mb-3">
                   <div class="col-md-12">
-                    <label class="form-label">Reporting Department <span class="text-danger">*</span></label>
+                    <label class="form-label">Department / Ward <span class="text-danger">*</span></label>
                     <select class="form-select form-select-sm" name="departmentId" required>
-                      <option value="">— Select hospital department —</option>
+                      <option value="">— Select department or ward —</option>
                       <% departments.forEach(d => { %>
                       <option value="<%= d._id %>"><%= d.name %></option>
                       <% }) %>
                     </select>
-                    <div class="form-text" style="font-size: 0.7rem;">Where the fault or maintenance problem is physically located.</div>
+                    <div class="form-text" style="font-size: 0.7rem;">Where the issue is located.</div>
                   </div>
                 </div>
 
@@ -80,9 +80,9 @@
                     </select>
                   </div>
                   <div class="col-md-6">
-                    <label class="form-label">Urgency / Priority <span class="text-danger">*</span></label>
+                    <label class="form-label">Urgency <span class="text-danger">*</span></label>
                     <select class="form-select form-select-sm text-capitalize" name="priority" id="ticket-priority" required>
-                      <option value="">— Select priority —</option>
+                      <option value="">— Select urgency —</option>
                       <% PRIORITIES.forEach(p => { %>
                       <option value="<%= p %>"><%= p %></option>
                       <% }) %>
@@ -91,13 +91,13 @@
                 </div>
 
                 <div class="mb-3">
-                  <label class="form-label">Problem Summary <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control form-control-sm" name="title" id="ticket-title" required maxlength="200" placeholder="Brief summary of the operational issue" />
+                  <label class="form-label">Brief Title <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control form-control-sm" name="title" id="ticket-title" required maxlength="200" placeholder="e.g. Suction pump vibrating loudly" />
                 </div>
 
                 <div class="mb-3">
                   <label class="form-label">Detailed Description <span class="text-danger">*</span></label>
-                  <textarea class="form-control" name="description" id="ticket-description" rows="4" required maxlength="2000" placeholder="Specify exact room, bed number, error messages, or symptoms..."></textarea>
+                  <textarea class="form-control" name="description" id="ticket-description" rows="4" required maxlength="2000" placeholder="Provide details like room number, symptoms, or error codes..."></textarea>
                   <div class="d-flex align-items-center gap-1 text-secondary mt-1" style="font-size: 0.72rem;">
                     <i class="bi bi-shield-lock text-primary"></i>
                     <span><strong>Privacy Protection:</strong> Never enter patient names, medical history, or clinical records in operational tickets.</span>
@@ -126,14 +126,14 @@
                 <% } %>
 
                 <div class="mb-4">
-                  <label class="form-label">Photo or Diagnostic Attachment (Optional)</label>
+                  <label class="form-label">Attach Photo or File (Optional)</label>
                   <input type="file" class="form-control form-control-sm" name="attachments" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" />
                   <div class="form-text" style="font-size: 0.7rem;">Supported: JPG, PNG, PDF (max 5 files, 5MB each).</div>
                 </div>
 
                 <div class="d-flex align-items-center gap-2 pt-2 border-top">
                   <button type="submit" class="btn btn-primary px-3">
-                    <i class="bi bi-send me-1"></i>Submit Work Order
+                    <i class="bi bi-send me-1"></i>Submit Problem Report
                   </button>
                   <a href="/tickets" class="btn btn-outline-secondary">Cancel</a>
                 </div>
@@ -143,40 +143,28 @@
         </div>
 
         <div class="col-lg-4">
-          <div class="wf-card mb-3 border-danger border-opacity-25" style="background: #fff5f5;">
-            <div class="p-3">
-              <div class="d-flex align-items-center gap-2 text-danger fw-semibold small mb-1">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-                <span>Emergency Safety Notice</span>
-              </div>
-              <p class="mb-0 text-secondary" style="font-size: 0.75rem; line-height: 1.4;">
-                If this fault involves active fire danger, live electrical shock hazard, or immediate threat to human life, contact your hospital emergency codes extension immediately. WardFlow is not an emergency dispatch system.
-              </p>
-            </div>
-          </div>
-
           <div class="wf-card mb-3">
             <div class="wf-card-header">
-              <span class="fw-semibold small"><i class="bi bi-clock-history me-1 text-primary"></i>Target SLA Matrix</span>
+              <span class="fw-semibold small"><i class="bi bi-clock-history me-1 text-primary"></i>Target Resolution Times</span>
             </div>
             <div class="p-0">
               <table class="table table-sm mb-0" style="font-size: 0.75rem;">
                 <tbody>
                   <tr>
                     <td class="ps-3"><span class="wf-badge badge-priority-critical"><span class="status-dot"></span>Critical</span></td>
-                    <td class="text-secondary fw-semibold">Immediate / 4h</td>
+                    <td class="text-secondary fw-semibold">Within 4 hours</td>
                   </tr>
                   <tr>
                     <td class="ps-3"><span class="wf-badge badge-priority-high"><span class="status-dot"></span>High</span></td>
-                    <td class="text-secondary">12 hours</td>
+                    <td class="text-secondary">Within 12 hours</td>
                   </tr>
                   <tr>
                     <td class="ps-3"><span class="wf-badge badge-priority-medium"><span class="status-dot"></span>Medium</span></td>
-                    <td class="text-secondary">24 hours</td>
+                    <td class="text-secondary">Within 24 hours</td>
                   </tr>
                   <tr>
                     <td class="ps-3"><span class="wf-badge badge-priority-low"><span class="status-dot"></span>Low</span></td>
-                    <td class="text-secondary">48 hours</td>
+                    <td class="text-secondary">Within 48 hours</td>
                   </tr>
                 </tbody>
               </table>
@@ -185,15 +173,15 @@
 
           <div class="wf-card">
             <div class="wf-card-header">
-              <span class="fw-semibold small"><i class="bi bi-info-circle me-1 text-secondary"></i>Eligible Issues</span>
+              <span class="fw-semibold small"><i class="bi bi-info-circle me-1 text-secondary"></i>What Can You Report?</span>
             </div>
             <div class="p-3 small text-secondary" style="font-size: 0.75rem;">
               <ul class="ps-3 mb-0">
-                <li class="mb-1">Biomedical and monitoring equipment faults</li>
-                <li class="mb-1">Plumbing, water leaks, and sanitary blocks</li>
-                <li class="mb-1">Lighting, generator, and electrical trips</li>
-                <li class="mb-1">Spillages and critical housekeeping requests</li>
-                <li>HVAC, air handling units, and cold chain maintenance</li>
+                <li class="mb-1">Machine &amp; equipment breakdowns</li>
+                <li class="mb-1">Leaking pipes &amp; water supply issues</li>
+                <li class="mb-1">Power trips &amp; faulty lighting</li>
+                <li class="mb-1">Urgent cleaning &amp; spill disposal</li>
+                <li>Air conditioning &amp; ventilation problems</li>
               </ul>
             </div>
           </div>

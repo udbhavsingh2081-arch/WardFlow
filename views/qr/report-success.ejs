@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Issue Reported Successfully — WardFlow</title>
+  <title>Problem Reported — WardFlow</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <style>
@@ -21,19 +21,19 @@
       width: 100%;
       border-radius: 12px;
       border: 1px solid #e2e8f0;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       background: #ffffff;
-      padding: 2.5rem 1.75rem;
+      padding: 2.25rem 1.75rem;
       text-align: center;
     }
     .badge-ticket {
-      font-size: 1.25rem;
+      font-size: 1.3rem;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       letter-spacing: 0.04em;
       background-color: #eff6ff;
-      color: #1d4ed8;
+      color: #0d6efd;
       border: 1px solid #bfdbfe;
-      padding: 0.5rem 1rem;
+      padding: 0.6rem 1.25rem;
       border-radius: 8px;
       display: inline-block;
       margin: 1rem 0;
@@ -44,25 +44,30 @@
 <div class="card-success">
   <div class="mb-3">
     <div class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
-      <i class="bi bi-check2-circle fs-2"></i>
+      <i class="bi bi-check2 fs-1"></i>
     </div>
   </div>
 
-  <h5 class="fw-bold text-dark mb-1">Issue Reported!</h5>
-  <p class="text-secondary small mb-2">Your report for <strong><%= assetName %></strong> has been logged into WardFlow.</p>
+  <h4 class="fw-bold text-dark mb-1">Issue Reported!</h4>
+  <p class="text-secondary small mb-2">Thank you. Your request for <strong><%= assetName %></strong> has been sent to our maintenance team.</p>
 
   <div class="badge-ticket fw-bold">
     <%= ticketNumber %>
   </div>
 
   <p class="small text-muted mb-4">
-    The responsible department has been notified. Please quote this ticket number if following up.
+    A technician will be assigned to resolve this issue. Please keep this ticket number for your reference.
   </p>
 
   <div class="d-grid gap-2">
-    <button onclick="window.close(); if(!window.closed) window.location.reload();" class="btn btn-outline-secondary btn-sm">
-      Close Window
-    </button>
+    <% if (locals.token) { %>
+      <a href="/qr/report/<%= token %>" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>Report Another Problem on this Item
+      </a>
+    <% } %>
+    <a href="/dashboard" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-speedometer2 me-1"></i>Go to Dashboard
+    </a>
   </div>
 </div>
 </body>

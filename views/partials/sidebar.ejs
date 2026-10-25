@@ -107,20 +107,20 @@
         <li class="nav-item">
           <a href="/analytics/ai" class="nav-link <%= locals.activePage === 'ai-analytics' ? 'active' : '' %>">
             <i class="bi bi-cpu"></i>
-            <span>Gemini AI Analytics</span>
+            <span>AI Insights</span>
           </a>
         </li>
         <li class="nav-item">
           <a href="/analytics" class="nav-link <%= locals.activePage === 'analytics' ? 'active' : '' %>">
             <i class="bi bi-bar-chart-line"></i>
-            <span>SLA & Bottlenecks</span>
+            <span>Performance Reports</span>
           </a>
         </li>
         <% if (['operations_manager','hospital_admin','platform_admin'].includes(currentUser.role)) { %>
         <li class="nav-item">
           <a href="/qr/assets" class="nav-link <%= locals.activePage === 'qr' ? 'active' : '' %>">
             <i class="bi bi-qr-code-scan"></i>
-            <span>QR Assets</span>
+            <span>Equipment &amp; QR</span>
           </a>
         </li>
         <% } %>

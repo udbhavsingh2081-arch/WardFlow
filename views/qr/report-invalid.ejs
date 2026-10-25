@@ -21,9 +21,9 @@
       width: 100%;
       border-radius: 12px;
       border: 1px solid #e2e8f0;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       background: #ffffff;
-      padding: 2.5rem 1.75rem;
+      padding: 2.25rem 1.75rem;
       text-align: center;
     }
   </style>
@@ -32,14 +32,17 @@
 <div class="card-invalid">
   <div class="mb-3">
     <div class="rounded-circle bg-danger-subtle text-danger d-inline-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
-      <i class="bi bi-slash-circle fs-2"></i>
+      <i class="bi bi-exclamation-octagon fs-2"></i>
     </div>
   </div>
-  <h5 class="fw-bold text-dark mb-2"><%= title %></h5>
-  <p class="text-secondary small mb-4"><%= message %></p>
+  <h5 class="fw-bold text-dark mb-2">Invalid QR Code</h5>
+  <p class="text-secondary small mb-4">This QR code is no longer valid or has expired. If you need help with this equipment, please speak to nearby hospital staff or report below.</p>
   <div class="d-grid gap-2">
-    <a href="/auth/login" class="btn btn-outline-primary btn-sm">
-      <i class="bi bi-box-arrow-in-right me-1"></i>Staff Login to WardFlow
+    <a href="/tickets/new" class="btn btn-primary btn-sm">
+      <i class="bi bi-pencil-square me-1"></i>Report Problem Manually
+    </a>
+    <a href="/auth/login" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-box-arrow-in-right me-1"></i>Sign In to WardFlow
     </a>
   </div>
 </div>

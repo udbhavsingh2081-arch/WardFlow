@@ -37,6 +37,10 @@ const qrAssetSchema = new mongoose.Schema({
 qrAssetSchema.index({ hospitalId: 1, isActive: 1 });
 qrAssetSchema.index({ hospitalId: 1, departmentId: 1 });
 
+qrAssetSchema.virtual('status').get(function () {
+  return this.isActive ? 'active' : 'retired';
+});
+
 qrAssetSchema.statics.generateToken = () => {
   const rawToken = crypto.randomBytes(32).toString('hex');
   const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');

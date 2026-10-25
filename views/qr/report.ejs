@@ -3,101 +3,117 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Report Issue — <%= asset.name %> — WardFlow</title>
+  <title>Report a Problem — <%= asset.name %> — WardFlow</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
   <style>
     body {
-      background-color: #f1f5f9;
+      background-color: #f8fafc;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
-      color: #0f172a;
+      color: #1e293b;
       -webkit-font-smoothing: antialiased;
     }
     .mobile-container {
-      max-width: 520px;
+      max-width: 480px;
       margin: 0 auto;
-      padding: 1rem 0.85rem 3rem;
+      padding: 1.25rem 1rem 3rem;
     }
-    .header-card {
+    .card-header-box {
       background: #0f172a;
       color: #ffffff;
       border-radius: 12px;
       padding: 1.25rem;
       margin-bottom: 1rem;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     }
-    .form-card {
+    .card-form-box {
       background: #ffffff;
       border-radius: 12px;
       padding: 1.25rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
       border: 1px solid #e2e8f0;
-    }
-    .prefilled-badge {
-      background-color: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #cbd5e1;
-      border-radius: 6px;
-      padding: 0.25rem 0.5rem;
-      font-size: 0.72rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     }
     .btn-submit {
-      background-color: #0f52ba;
+      background-color: #0d6efd;
       color: #ffffff;
       font-weight: 600;
       border-radius: 8px;
       padding: 0.75rem;
-      font-size: 0.95rem;
+      font-size: 1rem;
       border: none;
       width: 100%;
       transition: background-color 0.15s ease;
     }
     .btn-submit:hover, .btn-submit:focus {
-      background-color: #0d47a1;
+      background-color: #0b5ed7;
       color: #ffffff;
     }
     .form-control, .form-select {
-      border-radius: 6px;
-      padding: 0.55rem 0.75rem;
-      font-size: 0.875rem;
+      border-radius: 8px;
+      padding: 0.6rem 0.75rem;
+      font-size: 0.9rem;
       border: 1px solid #cbd5e1;
     }
     .form-control:focus, .form-select:focus {
-      border-color: #0f52ba;
-      box-shadow: 0 0 0 3px rgba(15, 82, 186, 0.15);
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
     }
   </style>
 </head>
 <body>
 <div class="mobile-container">
-  <div class="header-card">
+  <!-- Asset Information Header -->
+  <div class="card-header-box">
     <div class="d-flex align-items-center justify-content-between mb-2">
-      <span class="small text-secondary" style="color: #94a3b8 !important;"><i class="bi bi-hospital me-1"></i><%= asset.hospitalId ? asset.hospitalId.name : 'WardFlow Operations' %></span>
-      <span class="badge bg-primary text-white" style="font-size: 0.65rem;"><i class="bi bi-qr-code-scan me-1"></i>QR Report</span>
+      <span class="small text-secondary" style="color: #94a3b8 !important;">
+        <i class="bi bi-hospital me-1"></i><%= asset.hospitalId ? asset.hospitalId.name : 'WardFlow' %>
+      </span>
+      <span class="badge bg-primary text-white" style="font-size: 0.65rem;">
+        <i class="bi bi-qr-code me-1"></i>QR Report
+      </span>
     </div>
+
     <h5 class="fw-bold mb-1 text-white"><%= asset.name %></h5>
+
     <% if (asset.location) { %>
-      <div class="small mb-2" style="color: #cbd5e1;"><i class="bi bi-geo-alt me-1 text-primary"></i><%= asset.location %></div>
+      <div class="small mb-2" style="color: #cbd5e1;">
+        <i class="bi bi-geo-alt me-1 text-primary"></i><%= asset.location %>
+      </div>
     <% } %>
 
-    <div class="d-flex flex-wrap gap-1 mt-2">
-      <% if (asset.assetCode) { %>
-        <span class="prefilled-badge"><i class="bi bi-tag"></i><%= asset.assetCode %></span>
-      <% } %>
+    <div class="d-flex flex-wrap gap-2 mt-2">
       <% if (asset.departmentId) { %>
-        <span class="prefilled-badge"><i class="bi bi-building"></i><%= asset.departmentId.name %></span>
+        <span class="badge bg-light text-dark fw-normal"><i class="bi bi-building me-1"></i><%= asset.departmentId.name %></span>
       <% } %>
-      <span class="prefilled-badge text-capitalize"><i class="bi bi-info-circle"></i><%= asset.assetType %></span>
+      <% if (asset.assetCode) { %>
+        <span class="badge bg-secondary text-white font-monospace"><%= asset.assetCode %></span>
+      <% } %>
     </div>
   </div>
 
+  <!-- Sign In Status / Quick Banner -->
+  <div class="card border-0 bg-light mb-3 p-2 px-3 rounded-2 small text-muted d-flex flex-row align-items-center justify-content-between">
+    <% if (locals.loggedInUser) { %>
+      <div>
+        <i class="bi bi-person-check text-success me-1"></i>
+        Reporting as <strong><%= loggedInUser.name %></strong>
+      </div>
+      <a href="/dashboard" class="text-decoration-none">My Portal</a>
+    <% } else { %>
+      <div>
+        <i class="bi bi-info-circle text-primary me-1"></i>
+        No login needed to report.
+      </div>
+      <div>
+        <a href="/auth/login" class="text-decoration-none me-2">Sign In</a>
+        <a href="/auth/register" class="text-decoration-none">Register</a>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- Error Alerts -->
   <% if (errors && errors.length > 0) { %>
-    <div class="alert alert-danger rounded-2 mb-3 py-2 px-3 small border border-danger-subtle" role="alert">
-      <div class="fw-bold mb-1"><i class="bi bi-exclamation-circle me-1"></i>Please correct the following:</div>
+    <div class="alert alert-danger rounded-2 mb-3 py-2 px-3 small border-0" role="alert">
+      <div class="fw-bold mb-1"><i class="bi bi-exclamation-triangle me-1"></i>Please check:</div>
       <ul class="mb-0 ps-3">
         <% errors.forEach(e => { %>
           <li><%= e.msg %></li>
@@ -106,75 +122,82 @@
     </div>
   <% } %>
 
-  <div class="form-card">
+  <!-- Simple Report Form -->
+  <div class="card-form-box">
     <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
       <i class="bi bi-pencil-square text-primary"></i>
       <h6 class="fw-bold mb-0 text-dark">Issue Details</h6>
     </div>
 
     <form action="/qr/report/<%= token %>" method="POST" id="qrReportForm">
+      <!-- Name -->
       <div class="mb-3">
         <label for="reporterName" class="form-label small fw-semibold text-secondary">
-          Your Name / Staff ID <span class="text-danger">*</span>
+          Your Name <span class="text-danger">*</span>
         </label>
         <input type="text" class="form-control" id="reporterName" name="reporterName" required maxlength="100"
-          placeholder="e.g. Nurse Sunita / Technologist Rao"
+          placeholder="e.g. Sister Mary / Dr. Patel / Attendant"
           value="<%= formData.reporterName || '' %>">
-        <div class="form-text" style="font-size: 0.7rem;">Technician will follow up if clarification is needed.</div>
       </div>
 
+      <!-- Problem Category -->
       <div class="mb-3">
         <label for="category" class="form-label small fw-semibold text-secondary">
-          Issue Category <span class="text-danger">*</span>
+          What is the problem with? <span class="text-danger">*</span>
         </label>
-        <select class="form-select text-capitalize" id="category" name="category" required>
+        <select class="form-select" id="category" name="category" required>
           <option value="">— Select Category —</option>
-          <% categories.forEach(cat => { %>
-            <option value="<%= cat %>" <%= (formData.category === cat || (!formData.category && asset.assetType === 'equipment' && cat === 'equipment') || (!formData.category && asset.assetType === 'facility' && cat === 'facilities')) ? 'selected' : '' %>>
-              <%= cat %>
-            </option>
-          <% }) %>
+          <option value="equipment" <%= (formData.category === 'equipment' || (!formData.category && asset.assetType === 'equipment')) ? 'selected' : '' %>>Medical Machine / Equipment</option>
+          <option value="electrical" <%= formData.category === 'electrical' ? 'selected' : '' %>>Electricity, Power &amp; Lights</option>
+          <option value="plumbing" <%= formData.category === 'plumbing' ? 'selected' : '' %>>Water &amp; Plumbing</option>
+          <option value="housekeeping" <%= formData.category === 'housekeeping' ? 'selected' : '' %>>Cleaning &amp; Sanitation</option>
+          <option value="facilities" <%= (formData.category === 'facilities' || (!formData.category && asset.assetType === 'facility')) ? 'selected' : '' %>>Doors, Furniture &amp; Room</option>
+          <option value="supplies" <%= formData.category === 'supplies' ? 'selected' : '' %>>Hospital Supplies</option>
+          <option value="other" <%= formData.category === 'other' ? 'selected' : '' %>>Other Issue</option>
         </select>
       </div>
 
+      <!-- Urgency -->
       <div class="mb-3">
         <label for="priority" class="form-label small fw-semibold text-secondary">
-          Urgency / Operational Impact
+          How urgent is this?
         </label>
-        <select class="form-select text-capitalize" id="priority" name="priority">
-          <option value="low" <%= formData.priority === 'low' ? 'selected' : '' %>>Low — Minor cosmetic or non-urgent issue</option>
+        <select class="form-select" id="priority" name="priority">
+          <option value="low" <%= formData.priority === 'low' ? 'selected' : '' %>>Low — Can wait a few days</option>
           <option value="medium" <%= (!formData.priority || formData.priority === 'medium') ? 'selected' : '' %>>Medium — Needs attention today</option>
-          <option value="high" <%= formData.priority === 'high' ? 'selected' : '' %>>High — Workflow delayed / machine impaired</option>
-          <option value="critical" <%= formData.priority === 'critical' ? 'selected' : '' %>>Critical — Urgent safety or patient care risk</option>
+          <option value="high" <%= formData.priority === 'high' ? 'selected' : '' %>>High — Work is delayed or stopped</option>
+          <option value="critical" <%= formData.priority === 'critical' ? 'selected' : '' %>>Critical — Urgent emergency / safety risk</option>
         </select>
       </div>
 
+      <!-- Summary -->
       <div class="mb-3">
         <label for="title" class="form-label small fw-semibold text-secondary">
-          Problem Summary <span class="text-danger">*</span>
+          Short Summary <span class="text-danger">*</span>
         </label>
         <input type="text" class="form-control" id="title" name="title" required maxlength="200"
-          placeholder="e.g. Display screen flickering, Water dripping from valve"
+          placeholder="e.g. Display screen flickering, Water leaking from tap"
           value="<%= formData.title || '' %>">
       </div>
 
+      <!-- Details -->
       <div class="mb-4">
         <label for="description" class="form-label small fw-semibold text-secondary">
-          Detailed Description <span class="text-danger">*</span>
+          More Details <span class="text-danger">*</span>
         </label>
         <textarea class="form-control" id="description" name="description" rows="4" required maxlength="2000"
-          placeholder="Describe symptoms, error codes on display, or immediate operational impact..."><%= formData.description || '' %></textarea>
-        <div class="form-text text-secondary" style="font-size: 0.7rem;">Never include patient personal health records or clinical diagnoses.</div>
+          placeholder="Please describe what is happening, error messages, or exact symptoms..."><%= formData.description || '' %></textarea>
+        <div class="form-text text-muted" style="font-size: 0.72rem;">Please do not include patient personal or medical information.</div>
       </div>
 
       <button type="submit" class="btn btn-submit" id="submitBtn">
-        <i class="bi bi-send me-1"></i>Submit Issue Report
+        <i class="bi bi-send me-1"></i>Send Report
       </button>
     </form>
   </div>
 
   <div class="text-center text-muted mt-3" style="font-size: 0.72rem;">
-    <i class="bi bi-shield-check me-1 text-success"></i>WardFlow Enterprise Healthcare Operations
+    <i class="bi bi-shield-check me-1 text-success"></i>WardFlow Hospital Operations
   </div>
 </div>
 
@@ -183,7 +206,7 @@
     const btn = document.getElementById('submitBtn');
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
     }
   });
 </script>
