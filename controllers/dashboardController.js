@@ -2,6 +2,7 @@ const Ticket = require('../models/Ticket');
 const Notification = require('../models/Notification');
 const Department = require('../models/Department');
 const User = require('../models/User');
+const mongoose = require('mongoose');
 const { differenceInHours } = require('date-fns');
 
 exports.showDashboard = async (req, res) => {
@@ -137,9 +138,16 @@ exports.showDashboard = async (req, res) => {
       : null;
 
     // Calculate active ticket load per worker
-    const activeStaffIds = staffList.map(s => s._id);
+    const hospObjId = new mongoose.Types.ObjectId(hospitalId);
+    const activeStaffObjIds = staffList.map(s => new mongoose.Types.ObjectId(s._id));
     const workerTicketCounts = await Ticket.aggregate([
-      { $match: { hospitalId: user.hospitalId, assignedTo: { $in: activeStaffIds }, status: { $in: ['assigned', 'in_progress', 'blocked'] } } },
+      {
+        $match: {
+          hospitalId: hospObjId,
+          assignedTo: { $in: activeStaffObjIds },
+          status: { $in: ['assigned', 'in_progress', 'blocked'] },
+        },
+      },
       { $group: { _id: '$assignedTo', count: { $sum: 1 } } },
     ]);
     const countMap = {};

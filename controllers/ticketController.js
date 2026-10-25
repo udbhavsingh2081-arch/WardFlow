@@ -219,10 +219,10 @@ exports.showTicket = async (req, res) => {
       Department.find({ hospitalId: req.hospitalId, isActive: true }).lean(),
     ]);
 
-    const canAssign = ['supervisor', 'operations_manager', 'hospital_admin'].includes(user.role);
+    const canAssign = ['supervisor', 'operations_manager', 'hospital_admin', 'platform_admin'].includes(user.role);
     const canResolve = (user.role === 'staff' && ticket.assignedTo && ticket.assignedTo._id.toString() === user._id.toString()) || canAssign;
-    const canVerify = ['supervisor', 'operations_manager', 'hospital_admin'].includes(user.role);
-    const canCancel = ['operations_manager', 'hospital_admin'].includes(user.role);
+    const canVerify = ['supervisor', 'operations_manager', 'hospital_admin', 'platform_admin'].includes(user.role);
+    const canCancel = ['operations_manager', 'hospital_admin', 'platform_admin'].includes(user.role);
     const canReopen = canAssign;
 
     res.render('tickets/detail', {
@@ -266,7 +266,7 @@ exports.showEdit = async (req, res) => {
 exports.assignTicket = async (req, res) => {
   const { assignedTo, assignedTeam, assignedDepartmentId } = req.body;
   const user = req.session.user;
-  if (!['supervisor', 'operations_manager', 'hospital_admin'].includes(user.role)) {
+  if (!['supervisor', 'operations_manager', 'hospital_admin', 'platform_admin'].includes(user.role)) {
     req.session.flash = { error: 'You do not have permission to assign tickets.' };
     return res.redirect(`/tickets/${req.params.id}`);
   }
@@ -276,16 +276,24 @@ exports.assignTicket = async (req, res) => {
 
     let assignee = null;
     if (assignedTo) {
-      assignee = await User.findOne({ _id: assignedTo, hospitalId: req.hospitalId, isActive: true });
-      if (!assignee) { req.session.flash = { error: 'Invalid assignee.' }; return res.redirect(`/tickets/${req.params.id}`); }
+      assignee = await User.findOne({ _id: assignedTo, isActive: true });
+      if (!assignee) { req.session.flash = { error: 'Invalid assignee selected.' }; return res.redirect(`/tickets/${req.params.id}`); }
     }
 
     const previousAssignee = ticket.assignedTo;
     ticket.assignedTo = assignee ? assignee._id : null;
-    ticket.assignedTeam = assignedTeam || ticket.assignedTeam;
+    if (assignedTeam !== undefined && assignedTeam !== '') {
+      ticket.assignedTeam = assignedTeam;
+    }
     if (assignedDepartmentId) ticket.assignedDepartmentId = assignedDepartmentId;
-    if (ticket.status === 'open') ticket.status = 'assigned';
-    if (!ticket.acknowledgedAt) ticket.acknowledgedAt = new Date();
+
+    if (ticket.status === 'open' && assignee) {
+      ticket.status = 'assigned';
+    } else if (!assignee && ticket.status === 'assigned') {
+      ticket.status = 'open';
+    }
+
+    if (!ticket.acknowledgedAt && assignee) ticket.acknowledgedAt = new Date();
     await ticket.save();
 
     await TicketActivity.create({
@@ -305,13 +313,21 @@ exports.assignTicket = async (req, res) => {
         recipientId: assignee._id,
         ticketId: ticket._id,
         type: 'assignment',
-        title: `Ticket Assigned: ${ticket.ticketNumber}`,
-        message: `You have been assigned ticket ${ticket.ticketNumber}: ${ticket.title}`,
+        title: `Task Assigned: ${ticket.ticketNumber}`,
+        message: `You were assigned ticket ${ticket.ticketNumber}: ${ticket.title}`,
       });
     }
 
-    req.session.flash = { success: 'Ticket assigned successfully.' };
-    res.redirect(`/tickets/${ticket._id}`);
+    req.session.flash = {
+      success: assignee
+        ? `Task ${ticket.ticketNumber} assigned to ${assignee.name}.`
+        : `Task ${ticket.ticketNumber} assignment removed.`,
+    };
+
+    const returnUrl = (req.headers.referer && req.headers.referer.includes('/dashboard'))
+      ? '/dashboard'
+      : `/tickets/${ticket._id}`;
+    res.redirect(returnUrl);
   } catch (err) {
     console.error('Assign ticket error:', err);
     req.session.flash = { error: 'Failed to assign ticket.' };

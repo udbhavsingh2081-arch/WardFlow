@@ -39,6 +39,15 @@
             <i class="bi bi-alarm me-1"></i>OVERDUE
           </span>
           <% } %>
+          <% if (ticket.assignedTo) { %>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-medium">
+            <i class="bi bi-person-check me-1"></i><%= ticket.assignedTo.name %>
+          </span>
+          <% } else { %>
+          <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-medium">
+            <i class="bi bi-person-x me-1"></i>Unassigned
+          </span>
+          <% } %>
         </div>
 
         <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -267,52 +276,68 @@
           <% } %>
 
           <div class="wf-card mb-3">
-            <div class="wf-card-header">
-              <span class="fw-semibold small"><i class="bi bi-person-check me-2 text-primary"></i>Assignment</span>
+            <div class="wf-card-header d-flex justify-content-between align-items-center">
+              <span class="fw-semibold small"><i class="bi bi-person-check me-2 text-primary"></i>Staff Assignment</span>
+              <% if (ticket.assignedTo) { %>
+                <span class="badge bg-success-subtle text-success border border-success-subtle small">Assigned</span>
+              <% } else { %>
+                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle small">Unassigned</span>
+              <% } %>
             </div>
             <div class="wf-card-body">
+              <!-- Current Staff Display -->
+              <% if (ticket.assignedTo) { %>
+              <div class="p-2 mb-3 rounded bg-light border d-flex align-items-center gap-2">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 34px; height: 34px; font-size: 0.85rem; flex-shrink: 0;">
+                  <%= ticket.assignedTo.name ? ticket.assignedTo.name.charAt(0).toUpperCase() : 'W' %>
+                </div>
+                <div class="flex-grow-1 text-truncate">
+                  <div class="fw-semibold text-dark small text-truncate"><%= ticket.assignedTo.name %></div>
+                  <div class="text-muted" style="font-size: 0.72rem;"><%= ticket.assignedTo.email %></div>
+                  <% if (ticket.assignedTeam) { %>
+                  <div class="badge bg-white text-secondary border mt-1" style="font-size: 0.68rem;"><%= ticket.assignedTeam %></div>
+                  <% } %>
+                </div>
+              </div>
+              <% } else { %>
+              <div class="alert alert-warning py-2 px-3 small border-0 mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-circle text-warning fs-5"></i>
+                <div>No staff worker assigned to this task yet.</div>
+              </div>
+              <% } %>
+
               <% if (canAssign && !['closed','cancelled'].includes(ticket.status)) { %>
               <form method="POST" action="/tickets/<%= ticket._id %>/assign">
                 <div class="mb-2">
-                  <label class="form-label">Responsible Technician</label>
-                  <select class="form-select form-select-sm" name="assignedTo">
-                    <option value="">— Unassigned —</option>
+                  <label class="form-label small fw-semibold text-secondary">
+                    <%= ticket.assignedTo ? 'Reassign to Staff' : 'Assign to Staff' %>
+                  </label>
+                  <select class="form-select form-select-sm" name="assignedTo" required>
+                    <option value="">— Select staff worker —</option>
                     <% staff.forEach(u => { %>
-                    <option value="<%= u._id %>" <%= ticket.assignedTo && ticket.assignedTo._id.toString() === u._id.toString() ? 'selected' : '' %>>
+                    <option value="<%= u._id %>" <%= ticket.assignedTo && (ticket.assignedTo._id ? ticket.assignedTo._id.toString() : ticket.assignedTo.toString()) === u._id.toString() ? 'selected' : '' %>>
                       <%= u.name %> (<%= u.role.replace(/_/g, ' ') %>)
                     </option>
                     <% }) %>
                   </select>
                 </div>
                 <div class="mb-2">
-                  <label class="form-label">Assigned Team / Unit</label>
-                  <input type="text" class="form-control form-control-sm" name="assignedTeam" value="<%= ticket.assignedTeam || '' %>" placeholder="e.g. Biomedical Unit 1" />
+                  <label class="form-label small fw-semibold text-secondary">Assigned Team / Unit (Optional)</label>
+                  <input type="text" class="form-control form-control-sm" name="assignedTeam" value="<%= ticket.assignedTeam || '' %>" placeholder="e.g. Biomedical Unit, Electrical" />
                 </div>
                 <div class="mb-2">
-                  <label class="form-label">Responsible Dept</label>
+                  <label class="form-label small fw-semibold text-secondary">Responsible Dept (Optional)</label>
                   <select class="form-select form-select-sm" name="assignedDepartmentId">
                     <option value="">Same as reporting dept</option>
                     <% departments.forEach(d => { %>
-                    <option value="<%= d._id %>" <%= ticket.assignedDepartmentId && ticket.assignedDepartmentId.toString() === d._id.toString() ? 'selected' : '' %>><%= d.name %></option>
+                    <option value="<%= d._id %>" <%= ticket.assignedDepartmentId && (ticket.assignedDepartmentId._id ? ticket.assignedDepartmentId._id.toString() : ticket.assignedDepartmentId.toString()) === d._id.toString() ? 'selected' : '' %>><%= d.name %></option>
                     <% }) %>
                   </select>
                 </div>
-                <button type="submit" class="btn btn-sm btn-outline-primary w-100 mt-2">
-                  Save Assignment
+                <button type="submit" class="btn btn-sm btn-primary w-100 mt-2">
+                  <i class="bi bi-person-check me-1"></i><%= ticket.assignedTo ? 'Update Staff Assignment' : 'Assign Staff Member' %>
                 </button>
               </form>
-              <% } else { %>
-              <div class="small">
-                <% if (ticket.assignedTo) { %>
-                  <div class="fw-semibold text-dark"><%= ticket.assignedTo.name %></div>
-                  <div class="text-muted"><%= ticket.assignedTo.email %></div>
-                  <% if (ticket.assignedTeam) { %>
-                  <div class="badge bg-light text-secondary border mt-1"><%= ticket.assignedTeam %></div>
-                  <% } %>
-                <% } else { %>
-                  <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Unassigned</span>
-                <% } %>
-              </div>
               <% } %>
             </div>
           </div>
@@ -324,6 +349,16 @@
             <div class="p-0">
               <table class="table table-sm mb-0" style="font-size: 0.75rem;">
                 <tbody>
+                  <tr>
+                    <td class="text-muted ps-3 py-2">Assigned Staff</td>
+                    <td class="fw-semibold text-end pe-3 py-2">
+                      <% if (ticket.assignedTo) { %>
+                        <span class="text-primary"><i class="bi bi-person-check me-1"></i><%= ticket.assignedTo.name %></span>
+                      <% } else { %>
+                        <span class="text-warning-emphasis"><i class="bi bi-person-x me-1"></i>Unassigned</span>
+                      <% } %>
+                    </td>
+                  </tr>
                   <tr>
                     <td class="text-muted ps-3 py-2">Department</td>
                     <td class="fw-semibold text-dark text-end pe-3 py-2">
