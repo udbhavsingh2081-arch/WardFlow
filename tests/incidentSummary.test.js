@@ -8,6 +8,7 @@ const Ticket = require('../models/Ticket');
 const TicketActivity = require('../models/TicketActivity');
 const Comment = require('../models/Comment');
 const geminiService = require('../services/geminiIncidentSummaryService');
+const env = require('../config/environment');
 
 let hospitalA, hospitalB;
 let deptA, deptB;
@@ -232,23 +233,29 @@ describe('AI Incident Summary Route Authorization & Access Control', () => {
 describe('AI Incident Summary Service Execution & Error Handling', () => {
   test('Returns HTTP 503 when GEMINI_API_KEY is not configured', async () => {
     const originalKey = process.env.GEMINI_API_KEY;
-    delete process.env.GEMINI_API_KEY;
+    const originalEnvKey = env.gemini?.apiKey;
+    process.env.GEMINI_API_KEY = '';
+    if (env.gemini) env.gemini.apiKey = '';
 
     const res = await agentSupervisor.post(`/tickets/${ticketWithHistory._id}/ai-summary`);
     expect(res.statusCode).toBe(503);
     expect(res.body.error).toMatch(/Gemini API/i);
 
     if (originalKey) process.env.GEMINI_API_KEY = originalKey;
+    if (env.gemini) env.gemini.apiKey = originalEnvKey;
   });
 
   test('Handles empty history tickets safely without crashing', async () => {
     const originalKey = process.env.GEMINI_API_KEY;
-    delete process.env.GEMINI_API_KEY;
+    const originalEnvKey = env.gemini?.apiKey;
+    process.env.GEMINI_API_KEY = '';
+    if (env.gemini) env.gemini.apiKey = '';
 
     const res = await agentSupervisor.post(`/tickets/${ticketEmptyHistory._id}/ai-summary`);
     expect(res.statusCode).toBe(503);
 
     if (originalKey) process.env.GEMINI_API_KEY = originalKey;
+    if (env.gemini) env.gemini.apiKey = originalEnvKey;
   });
 
   test('Anchors current database status and returns 7 structured sections when API succeeds', async () => {
