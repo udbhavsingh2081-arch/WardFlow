@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SLA Policies — <%= appName %></title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/css/wardflow.css" />
+</head>
+<body>
+<div class="d-flex">
+  <%- include('../partials/sidebar') %>
+  <main class="wf-main flex-grow-1">
+    <%- include('../partials/topbar') %>
+    <%- include('../partials/flash') %>
+    <div class="mb-3">
+      <h6 class="fw-semibold mb-1">Service Level Agreement (SLA) & Escalation Targets</h6>
+      <p class="text-muted small">Configure operational target response and resolution durations per priority level. The background escalation engine monitors these thresholds automatically.</p>
+    </div>
+    <div class="row g-4">
+      <% ['critical','high','medium','low'].forEach(priority => {
+        const policy = policies.find(p => p.priority === priority) || {};
+        const defaults = { critical: [0.5, 1, 2], high: [1, 2, 4], medium: [4, 8, 24], low: [8, 24, 72] };
+        const [defAck, defResp, defRes] = defaults[priority];
+      %>
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header fw-semibold bg-white d-flex justify-content-between align-items-center">
+            <span><span class="badge badge-priority-<%= priority %> text-uppercase me-2"><%= priority %></span> Priority SLA</span>
+          </div>
+          <div class="card-body">
+            <form method="POST" action="/admin/sla">
+              <input type="hidden" name="priority" value="<%= priority %>" />
+              <div class="row g-2 mb-3">
+                <div class="col-4">
+                  <label class="form-label small fw-semibold">Ack (hrs)</label>
+                  <input type="number" class="form-control form-control-sm" name="acknowledgementHours" value="<%= policy.acknowledgementHours || defAck %>" min="0.1" step="0.5" required />
+                  <div class="text-muted" style="font-size:0.7rem">Until accepted</div>
+                </div>
+                <div class="col-4">
+                  <label class="form-label small fw-semibold">Response (hrs)</label>
+                  <input type="number" class="form-control form-control-sm" name="responseHours" value="<%= policy.responseHours || defResp %>" min="0.1" step="0.5" required />
+                  <div class="text-muted" style="font-size:0.7rem">Until work starts</div>
+                </div>
+                <div class="col-4">
+                  <label class="form-label small fw-semibold">Resolution (hrs)</label>
+                  <input type="number" class="form-control form-control-sm" name="resolutionHours" value="<%= policy.resolutionHours || defRes %>" min="0.1" step="0.5" required />
+                  <div class="text-muted" style="font-size:0.7rem">Target deadline</div>
+                </div>
+              </div>
+              <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" name="useBusinessHours" id="bh_<%= priority %>" <%= policy.useBusinessHours !== false ? 'checked' : '' %> />
+                <label class="form-check-label small" for="bh_<%= priority %>">Calculate using hospital business hours only</label>
+              </div>
+              <button type="submit" class="btn btn-sm btn-primary">Save Policy</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/wardflow.js"></script>
+</body>
+</html>

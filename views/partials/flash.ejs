@@ -1,0 +1,18 @@
+<% if (flash && flash.success) { %>
+<div class="alert alert-success alert-dismissible alert-auto-dismiss" role="alert">
+  <i class="bi bi-check-circle me-2"></i><%= flash.success %>
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<% } %>
+<% if (flash && flash.error) { %>
+<div class="alert alert-danger alert-dismissible alert-auto-dismiss" role="alert">
+  <i class="bi bi-exclamation-triangle me-2"></i><%= flash.error %>
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<% } %>
+<% if (flash && flash.info) { %>
+<div class="alert alert-info alert-dismissible alert-auto-dismiss" role="alert">
+  <i class="bi bi-info-circle me-2"></i><%= flash.info %>
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+<% } %>

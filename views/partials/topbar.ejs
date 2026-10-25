@@ -1,0 +1,10 @@
+<div class="d-flex align-items-center justify-content-between mb-3 py-2 border-bottom">
+  <h5 class="mb-0 fw-semibold"><%= typeof title !== 'undefined' ? title : appName %></h5>
+  <div class="d-flex align-items-center gap-3">
+    <a href="/tickets/new" class="btn btn-sm btn-primary"><i class="bi bi-plus-circle me-1"></i>Report Issue</a>
+    <a href="/dashboard" class="text-secondary position-relative">
+      <i class="bi bi-bell fs-5"></i>
+    </a>
+    <a href="/auth/profile" class="text-secondary"><i class="bi bi-person-circle fs-5"></i></a>
+  </div>
+</div>

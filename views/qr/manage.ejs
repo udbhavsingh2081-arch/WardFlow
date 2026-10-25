@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Asset Register — <%= appName %></title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/css/wardflow.css" />
+</head>
+<body>
+<div class="d-flex">
+  <%- include('../partials/sidebar') %>
+  <main class="wf-main flex-grow-1">
+    <%- include('../partials/topbar') %>
+    <%- include('../partials/flash') %>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+      <div>
+        <h4 class="mb-1 fw-bold text-dark"><i class="bi bi-qr-code me-2 text-primary"></i>QR Asset & Location Register</h4>
+        <p class="text-muted small mb-0">Generate and manage scannable QR codes for hospital equipment and facility areas.</p>
+      </div>
+      <div>
+        <a href="/qr/assets/new" class="btn btn-primary">
+          <i class="bi bi-plus-circle me-1"></i>Register Asset / Location
+        </a>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr class="text-muted small text-uppercase">
+                <th class="ps-4">Asset / Location</th>
+                <th>Code</th>
+                <th>Type</th>
+                <th>Department</th>
+                <th>Location Details</th>
+                <th>Status</th>
+                <th>Registered</th>
+                <th class="text-end pe-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (!assets || assets.length === 0) { %>
+                <tr>
+                  <td colspan="8" class="text-center py-5 text-muted">
+                    <i class="bi bi-qr-code fs-1 d-block mb-2 text-secondary"></i>
+                    No QR assets registered yet. Click <strong>Register Asset / Location</strong> to generate your first QR code.
+                  </td>
+                </tr>
+              <% } else { %>
+                <% assets.forEach(a => { %>
+                  <tr class="<%= !a.isActive ? 'table-light opacity-75' : '' %>">
+                    <td class="ps-4 fw-semibold text-dark">
+                      <i class="bi <%= a.assetType === 'equipment' ? 'bi-cpu' : a.assetType === 'room' ? 'bi-door-closed' : 'bi-geo-alt' %> text-primary me-2"></i>
+                      <%= a.name %>
+                      <% if (a.description) { %>
+                        <div class="text-muted small fw-normal text-truncate" style="max-width: 260px;"><%= a.description %></div>
+                      <% } %>
+                    </td>
+                    <td>
+                      <% if (a.assetCode) { %>
+                        <span class="badge bg-secondary-subtle text-secondary font-monospace"><%= a.assetCode %></span>
+                      <% } else { %>
+                        <span class="text-muted small">—</span>
+                      <% } %>
+                    </td>
+                    <td>
+                      <span class="badge bg-light text-dark text-capitalize"><%= a.assetType %></span>
+                    </td>
+                    <td>
+                      <%= a.departmentId ? a.departmentId.name : '<span class="text-muted small">Hospital-wide</span>' %>
+                    </td>
+                    <td>
+                      <%= a.location || '<span class="text-muted small">—</span>' %>
+                    </td>
+                    <td>
+                      <% if (a.isActive) { %>
+                        <span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle me-1"></i>Active</span>
+                      <% } else { %>
+                        <span class="badge bg-danger-subtle text-danger"><i class="bi bi-slash-circle me-1"></i>Retired</span>
+                      <% } %>
+                    </td>
+                    <td class="small text-muted">
+                      <%= new Date(a.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %>
+                    </td>
+                    <td class="text-end pe-4">
+                      <div class="btn-group btn-group-sm">
+                        <a href="/qr/assets/<%= a._id %>/qr" class="btn btn-outline-primary" title="View & Print QR">
+                          <i class="bi bi-qr-code me-1"></i>QR Code
+                        </a>
+                        <a href="/qr/assets/<%= a._id %>/edit" class="btn btn-outline-secondary" title="Edit Metadata">
+                          <i class="bi bi-pencil"></i>
+                        </a>
+                        <% if (a.isActive) { %>
+                          <form action="/qr/assets/<%= a._id %>/retire" method="POST" class="d-inline" onsubmit="return confirm('Retire QR code for <%= a.name %>? Scanning it will no longer allow submitting reports.');">
+                            <button type="submit" class="btn btn-outline-danger" title="Retire Asset">
+                              <i class="bi bi-slash-circle"></i>
+                            </button>
+                          </form>
+                        <% } else { %>
+                          <form action="/qr/assets/<%= a._id %>/reactivate" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-outline-success" title="Reactivate Asset">
+                              <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                          </form>
+                        <% } %>
+                      </div>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/wardflow.js"></script>
+</body>
+</html>

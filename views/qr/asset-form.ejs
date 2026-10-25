@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %> — <%= appName %></title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/css/wardflow.css" />
+</head>
+<body>
+<div class="d-flex">
+  <%- include('../partials/sidebar') %>
+  <main class="wf-main flex-grow-1">
+    <%- include('../partials/topbar') %>
+    <%- include('../partials/flash') %>
+
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="d-flex align-items-center mb-4">
+          <a href="/qr/assets" class="btn btn-outline-secondary btn-sm me-3">
+            <i class="bi bi-arrow-left"></i> Back to Register
+          </a>
+          <h4 class="mb-0 fw-bold"><%= isEdit ? 'Edit QR Asset' : 'Register Asset or Location' %></h4>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-3">
+          <div class="card-body p-4">
+            <form action="<%= formAction %>" method="<%= formMethod %>">
+              <div class="row g-3">
+                <div class="col-md-8">
+                  <label for="name" class="form-label fw-semibold">Asset or Location Name <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="name" name="name" required maxlength="100"
+                    placeholder="e.g. ICU Ventilator #4, Ground Floor Male Ward, Generator Room"
+                    value="<%= asset.name || '' %>">
+                  <div class="form-text">A clear name recognizable by staff in the department.</div>
+                </div>
+
+                <div class="col-md-4">
+                  <label for="assetCode" class="form-label fw-semibold">Reference / Asset Code</label>
+                  <input type="text" class="form-control font-monospace" id="assetCode" name="assetCode" maxlength="30"
+                    placeholder="e.g. BME-ICU-04"
+                    value="<%= asset.assetCode || '' %>">
+                  <div class="form-text">Internal tag or serial reference.</div>
+                </div>
+
+                <div class="col-md-6">
+                  <label for="assetType" class="form-label fw-semibold">Type</label>
+                  <select class="form-select" id="assetType" name="assetType">
+                    <option value="equipment" <%= asset.assetType === 'equipment' ? 'selected' : '' %>>Equipment / Device</option>
+                    <option value="room" <%= asset.assetType === 'room' ? 'selected' : '' %>>Room / Ward / Clinic</option>
+                    <option value="facility" <%= asset.assetType === 'facility' ? 'selected' : '' %>>Facility / Utility Area</option>
+                    <option value="other" <%= (!asset.assetType || asset.assetType === 'other') ? 'selected' : '' %>>Other Physical Asset</option>
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label for="departmentId" class="form-label fw-semibold">Responsible Department</label>
+                  <select class="form-select" id="departmentId" name="departmentId">
+                    <option value="">— Hospital-Wide / Unassigned —</option>
+                    <% departments.forEach(dept => { %>
+                      <option value="<%= dept._id %>" <%= (asset.departmentId && (asset.departmentId._id ? asset.departmentId._id.toString() : asset.departmentId.toString()) === dept._id.toString()) ? 'selected' : '' %>>
+                        <%= dept.name %>
+                      </option>
+                    <% }) %>
+                  </select>
+                  <div class="form-text">Tickets reported from this QR code will automatically route to this department.</div>
+                </div>
+
+                <div class="col-12">
+                  <label for="location" class="form-label fw-semibold">Physical Location Details</label>
+                  <input type="text" class="form-control" id="location" name="location" maxlength="200"
+                    placeholder="e.g. Building B, 3rd Floor, Bed 302, near Nursing Station"
+                    value="<%= asset.location || '' %>">
+                  <div class="form-text">Helps maintenance staff quickly locate the equipment or room.</div>
+                </div>
+
+                <div class="col-12">
+                  <label for="description" class="form-label fw-semibold">Notes / Operational Description</label>
+                  <textarea class="form-control" id="description" name="description" rows="3" maxlength="500"
+                    placeholder="Optional manufacturer details, maintenance schedule, or specific handling instructions..."><%= asset.description || '' %></textarea>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                <a href="/qr/assets" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary px-4">
+                  <i class="bi <%= isEdit ? 'bi-check2' : 'bi-qr-code' %> me-1"></i>
+                  <%= isEdit ? 'Save Changes' : 'Generate QR Code' %>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/wardflow.js"></script>
+</body>
+</html>

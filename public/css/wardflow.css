@@ -1,0 +1,74 @@
+/* WardFlow — Custom styles */
+:root {
+  --wf-primary: #0d6efd;
+  --wf-danger: #dc3545;
+  --wf-warning: #ffc107;
+  --wf-success: #198754;
+  --wf-sidebar-width: 240px;
+}
+
+body { font-size: 0.9rem; background-color: #f8f9fa; }
+
+/* Sidebar */
+.wf-sidebar {
+  width: var(--wf-sidebar-width);
+  min-height: 100vh;
+  background: #1a2332;
+  color: #c9d1d9;
+  position: fixed;
+  top: 0; left: 0;
+  overflow-y: auto;
+  z-index: 1000;
+}
+.wf-sidebar .nav-link { color: #c9d1d9; padding: 0.5rem 1rem; border-radius: 6px; margin: 2px 8px; font-size: 0.875rem; }
+.wf-sidebar .nav-link:hover, .wf-sidebar .nav-link.active { background: rgba(255,255,255,0.1); color: #fff; }
+.wf-sidebar .nav-link i { width: 20px; }
+.wf-sidebar .sidebar-brand { padding: 1.25rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.wf-sidebar .sidebar-section { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: #6e7681; padding: 0.75rem 1rem 0.25rem; }
+
+.wf-main { margin-left: var(--wf-sidebar-width); padding: 1.5rem; }
+
+/* Priority badges */
+.badge-priority-low { background-color: #6c757d; }
+.badge-priority-medium { background-color: #0d6efd; }
+.badge-priority-high { background-color: #fd7e14; }
+.badge-priority-critical { background-color: #dc3545; }
+
+/* Status badges */
+.badge-status-open { background-color: #6c757d; }
+.badge-status-assigned { background-color: #0d6efd; }
+.badge-status-in_progress { background-color: #6f42c1; }
+.badge-status-blocked { background-color: #fd7e14; }
+.badge-status-resolved { background-color: #20c997; }
+.badge-status-closed { background-color: #198754; }
+.badge-status-cancelled { background-color: #343a40; }
+
+/* Cards */
+.stat-card { border: none; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.stat-card .stat-value { font-size: 2rem; font-weight: 700; }
+.stat-card .stat-label { font-size: 0.8rem; color: #6c757d; }
+
+/* Ticket list */
+.ticket-row:hover { background-color: #f0f4ff; cursor: pointer; }
+.ticket-row td { vertical-align: middle; }
+
+/* Activity log */
+.activity-item { border-left: 2px solid #dee2e6; padding-left: 1rem; margin-bottom: 0.75rem; }
+.activity-item:last-child { margin-bottom: 0; }
+.activity-item .activity-time { font-size: 0.75rem; color: #6c757d; }
+
+/* Overdue indicator */
+.overdue-indicator { animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* AI suggestion panel */
+.ai-suggestion-panel { border: 1px solid #0d6efd; border-radius: 8px; background: #f0f7ff; }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .wf-sidebar { position: relative; width: 100%; min-height: auto; }
+  .wf-main { margin-left: 0; }
+}
+
+/* Notification dot */
+.notif-dot { width: 8px; height: 8px; background: #dc3545; border-radius: 50%; display: inline-block; }

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= title %> — WardFlow</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <style>
+    body {
+      background-color: #f8f9fa;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .card-invalid {
+      max-width: 440px;
+      width: 100%;
+      border-radius: 16px;
+      border: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      background: #ffffff;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div class="card-invalid">
+  <div class="mb-3">
+    <div class="rounded-circle bg-danger-subtle text-danger d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px;">
+      <i class="bi bi-qr-code fs-1"></i>
+    </div>
+  </div>
+  <h4 class="fw-bold text-dark mb-2"><%= title %></h4>
+  <p class="text-muted mb-4"><%= message %></p>
+  <div class="d-grid gap-2">
+    <a href="/auth/login" class="btn btn-outline-primary">
+      <i class="bi bi-box-arrow-in-right me-1"></i> Staff Login to WardFlow
+    </a>
+  </div>
+</div>
+</body>
+</html>
