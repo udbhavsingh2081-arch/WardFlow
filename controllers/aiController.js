@@ -83,7 +83,9 @@ exports.generateIncidentSummary = async (req, res) => {
     const summary = await aiService.generateIncidentSummary({ ticket, activities, comments });
     return res.json({ success: true, summary });
   } catch (err) {
-    console.error('Incident summary generation error:', err);
+    if (err.status && err.status >= 500 && err.code !== 'GEMINI_NOT_CONFIGURED') {
+      console.error('Incident summary generation error:', err.message);
+    }
     const status = err.status || 500;
     return res.status(status).json({ error: err.message || 'Failed to generate incident summary.' });
   }

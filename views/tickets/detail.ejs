@@ -45,8 +45,8 @@
         <!-- Action Buttons -->
         <div class="d-flex align-items-center gap-2 flex-wrap">
           <% if (currentUser && ['supervisor','operations_manager','hospital_admin','platform_admin'].includes(currentUser.role)) { %>
-          <button type="button" id="btnGenerateSummary" class="btn btn-sm btn-outline-primary" onclick="generateIncidentSummary('<%= ticket._id %>')">
-            <i class="bi bi-stars me-1"></i>Generate AI Summary
+          <button type="button" id="btnGenerateSummary" class="btn btn-sm btn-outline-secondary" onclick="generateIncidentSummary('<%= ticket._id %>')">
+            <i class="bi bi-sparkles me-1"></i>Summary
           </button>
           <% } %>
 

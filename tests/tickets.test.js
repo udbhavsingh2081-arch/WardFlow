@@ -67,7 +67,7 @@ describe('Ticket CRUD', () => {
   });
 
   test('POST /tickets/:id/status updates status to in_progress', async () => {
-    await Ticket.findByIdAndUpdate(ticketId, { status: 'assigned', assignedTo: adminUser._id }, { new: true });
+    await Ticket.findByIdAndUpdate(ticketId, { status: 'assigned', assignedTo: adminUser._id }, { returnDocument: 'after' });
     const res = await agent.post(`/tickets/${ticketId}/status`).send({ status: 'in_progress' }).redirects(0);
     expect(res.statusCode).toBe(302);
     const updated = await Ticket.findById(ticketId);

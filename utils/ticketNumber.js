@@ -9,7 +9,7 @@ const generateTicketNumber = async (hospitalId) => {
   const counter = await Counter.findOneAndUpdate(
     { key },
     { $inc: { seq: 1 } },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: 'after' }
   );
   const padded = String(counter.seq).padStart(5, '0');
   return `WF-${year}-${padded}`;

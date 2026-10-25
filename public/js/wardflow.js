@@ -108,19 +108,17 @@ async function generateIncidentSummary(ticketId) {
 
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Analyzing Incident...';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Summarizing...';
   }
 
   container.classList.remove('d-none');
   container.innerHTML = `
-    <div class="wf-card border-primary-subtle shadow-sm p-4 text-center">
-      <div class="spinner-border text-primary mb-2" role="status"></div>
-      <div class="fw-semibold text-dark">Generating AI Incident Summary...</div>
-      <div class="text-muted small mt-1">Analyzing reported details, chronological audit history, and operational comments with Google Gemini.</div>
+    <div class="card border p-3 text-center bg-light">
+      <div class="spinner-border spinner-border-sm text-secondary mb-1" role="status"></div>
+      <div class="small text-muted">Summarizing incident history with Gemini...</div>
     </div>
   `;
 
-  // Safe HTML escaper to strictly prevent executable HTML injection
   const esc = (str) => {
     if (!str) return '';
     const div = document.createElement('div');
@@ -137,23 +135,16 @@ async function generateIncidentSummary(ticketId) {
     const data = await res.json();
 
     if (!res.ok || !data.success || !data.summary) {
-      const errMsg = data.error || `Failed to generate summary (HTTP ${res.status}).`;
+      const errMsg = data.error || `Failed to generate summary (${res.status}).`;
       container.innerHTML = `
-        <div class="alert alert-danger d-flex align-items-center justify-content-between p-3 mb-0" role="alert">
-          <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-exclamation-triangle-fill fs-5"></i>
-            <div>
-              <strong>AI Summary Failed:</strong> ${esc(errMsg)}
-            </div>
-          </div>
-          <button type="button" class="btn btn-sm btn-outline-danger" onclick="generateIncidentSummary('${esc(ticketId)}')">
-            <i class="bi bi-arrow-clockwise me-1"></i>Retry
-          </button>
+        <div class="alert alert-danger d-flex align-items-center justify-content-between p-2 mb-0 small" role="alert">
+          <div><i class="bi bi-exclamation-circle me-1"></i>${esc(errMsg)}</div>
+          <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="generateIncidentSummary('${esc(ticketId)}')">Retry</button>
         </div>
       `;
       if (btn) {
         btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-stars me-1"></i>Generate AI Summary';
+        btn.innerHTML = '<i class="bi bi-sparkles me-1"></i>Summary';
       }
       return;
     }
@@ -161,195 +152,126 @@ async function generateIncidentSummary(ticketId) {
     const s = data.summary;
     const meta = s.metadata || {};
     const curr = s.currentStatus || {};
-    const formattedTime = meta.generatedAt ? new Date(meta.generatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : new Date().toLocaleTimeString();
+    const formattedTime = meta.generatedAt ? new Date(meta.generatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString();
 
-    // Build Actions Taken List
     const actionsHtml = Array.isArray(s.actionsTaken) && s.actionsTaken.length > 0
-      ? s.actionsTaken.map(a => `<li class="mb-1 text-secondary">${esc(a)}</li>`).join('')
-      : '<li class="text-muted fst-italic">No recorded actions.</li>';
+      ? s.actionsTaken.map(a => `<li class="mb-1">${esc(a)}</li>`).join('')
+      : '<li class="text-muted fst-italic">No actions recorded.</li>';
 
-    // Build Outstanding Actions List
     const outstandingHtml = Array.isArray(s.outstandingActions) && s.outstandingActions.length > 0
-      ? s.outstandingActions.map(o => `<li class="mb-1 text-secondary">${esc(o)}</li>`).join('')
-      : '<li class="text-muted fst-italic">No pending actions recorded.</li>';
+      ? s.outstandingActions.map(o => `<li class="mb-1">${esc(o)}</li>`).join('')
+      : '<li class="text-muted fst-italic">No outstanding actions.</li>';
 
-    // Build Timeline
     const timelineHtml = Array.isArray(s.timeline) && s.timeline.length > 0
       ? s.timeline.map(t => `
-          <div class="d-flex align-items-start gap-2 mb-2 pb-2 border-bottom border-light">
-            <span class="badge bg-light text-dark border font-monospace" style="font-size: 0.72rem; min-width: 140px;">${esc(t.timestamp)}</span>
-            <span class="small text-secondary flex-grow-1">${esc(t.event)}</span>
-          </div>
-        `).join('')
-      : '<div class="text-muted small fst-italic">No timeline recorded.</div>';
-
-    // Build Supervisor Attention List
-    const supervisorHtml = Array.isArray(s.supervisorAttention) && s.supervisorAttention.length > 0
-      ? s.supervisorAttention.map(item => `
           <div class="d-flex align-items-start gap-2 mb-1">
-            <i class="bi bi-exclamation-circle text-warning mt-1"></i>
-            <span class="small text-dark fw-medium">${esc(item)}</span>
+            <span class="text-muted font-monospace" style="font-size: 0.75rem; min-width: 90px;">${esc(t.timestamp)}</span>
+            <span class="text-secondary small">${esc(t.event)}</span>
           </div>
         `).join('')
-      : '<div class="text-muted small fst-italic">No supervisor escalation items recorded.</div>';
+      : '<div class="text-muted small fst-italic">No timeline entries.</div>';
 
-    // Build Data Gaps List
+    const supervisorHtml = Array.isArray(s.supervisorAttention) && s.supervisorAttention.length > 0
+      ? s.supervisorAttention.map(item => `<div class="mb-1 small text-dark">• ${esc(item)}</div>`).join('')
+      : '<div class="text-muted small fst-italic">No attention items.</div>';
+
     const dataGapsHtml = Array.isArray(s.dataGaps) && s.dataGaps.length > 0
-      ? s.dataGaps.map(g => `<li class="mb-1 text-secondary">${esc(g)}</li>`).join('')
-      : '<li class="text-muted fst-italic">No critical data gaps noted in current records.</li>';
+      ? s.dataGaps.map(g => `<li class="mb-1">${esc(g)}</li>`).join('')
+      : '<li class="text-muted fst-italic">No missing information noted.</li>';
 
     container.innerHTML = `
-      <div class="wf-card border-primary shadow-sm">
-        <!-- Card Header -->
-        <div class="p-3 border-bottom bg-light-subtle d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div class="card border mb-3 shadow-sm">
+        <div class="card-header bg-white py-2 px-3 d-flex justify-content-between align-items-center">
           <div class="d-flex align-items-center gap-2">
-            <span class="badge bg-primary text-white d-flex align-items-center gap-1 py-1 px-2">
-              <i class="bi bi-stars"></i> Gemini AI
-            </span>
-            <h6 class="mb-0 fw-bold text-dark">Incident Summary &amp; Historical Overview</h6>
+            <span class="fw-semibold text-dark small"><i class="bi bi-sparkles text-primary me-1"></i>Incident Summary</span>
+            <span class="badge bg-light text-muted border fw-normal" style="font-size: 0.65rem;">AI Generated</span>
           </div>
           <div class="d-flex align-items-center gap-2">
-            <span class="text-muted small"><i class="bi bi-clock me-1"></i>Generated at ${esc(formattedTime)}</span>
-            <button type="button" class="btn btn-sm btn-link text-secondary p-0 ms-2 text-decoration-none" onclick="document.getElementById('aiSummaryContainer').classList.add('d-none')" title="Close Summary">
-              <i class="bi bi-x-lg"></i>
+            <span class="text-muted" style="font-size: 0.75rem;">${esc(formattedTime)}</span>
+            <button type="button" class="btn btn-sm btn-link text-muted p-0 ms-2 text-decoration-none" onclick="document.getElementById('aiSummaryContainer').classList.add('d-none')" title="Close">
+              <i class="bi bi-x"></i>
             </button>
           </div>
         </div>
 
-        <div class="wf-card-body p-4">
-          <!-- 1. Incident Overview -->
-          <div class="mb-4">
-            <div class="meta-label mb-1 text-uppercase text-primary fw-bold" style="font-size: 0.72rem; letter-spacing: 0.05em;">
-              <i class="bi bi-file-text me-1"></i>1. Incident Overview
+        <div class="card-body p-3">
+          <p class="text-dark mb-3" style="font-size: 0.875rem; line-height: 1.5;">${esc(s.incidentOverview)}</p>
+
+          <div class="row g-2 mb-3 p-2 rounded bg-light border">
+            <div class="col-6 col-md-3">
+              <div class="text-muted" style="font-size: 0.7rem;">Status</div>
+              <div class="fw-medium text-dark text-capitalize small">${esc(curr.status || 'open')}</div>
             </div>
-            <div class="p-3 rounded bg-light border text-dark" style="font-size: 0.875rem; line-height: 1.6;">
-              ${esc(s.incidentOverview)}
+            <div class="col-6 col-md-3">
+              <div class="text-muted" style="font-size: 0.7rem;">Priority</div>
+              <div class="fw-medium text-dark text-uppercase small">${esc(curr.priority || 'medium')}</div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="text-muted" style="font-size: 0.7rem;">Assignee</div>
+              <div class="fw-medium text-dark text-truncate small">${esc(curr.assignee || 'Unassigned')}</div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="text-muted" style="font-size: 0.7rem;">SLA Condition</div>
+              <div class="fw-medium ${curr.isOverdue ? 'text-danger' : 'text-dark'} small">${esc(curr.slaState || 'On Track')}</div>
             </div>
           </div>
 
-          <!-- 2. Current Status & SLA Telemetry (Database Anchored) -->
-          <div class="mb-4">
-            <div class="meta-label mb-2 text-uppercase text-primary fw-bold" style="font-size: 0.72rem; letter-spacing: 0.05em;">
-              <i class="bi bi-speedometer2 me-1"></i>2. Current Status &amp; SLA Condition (Live Database)
-            </div>
-            <div class="row g-2">
-              <div class="col-sm-3">
-                <div class="p-2 border rounded bg-light text-center">
-                  <div class="text-muted" style="font-size: 0.7rem;">STATUS</div>
-                  <div class="fw-semibold text-dark text-capitalize">${esc(curr.status || 'open')}</div>
-                </div>
-              </div>
-              <div class="col-sm-3">
-                <div class="p-2 border rounded bg-light text-center">
-                  <div class="text-muted" style="font-size: 0.7rem;">PRIORITY</div>
-                  <div class="fw-semibold text-dark text-uppercase">${esc(curr.priority || 'medium')}</div>
-                </div>
-              </div>
-              <div class="col-sm-3">
-                <div class="p-2 border rounded bg-light text-center">
-                  <div class="text-muted" style="font-size: 0.7rem;">CURRENT ASSIGNEE</div>
-                  <div class="fw-semibold text-dark text-truncate">${esc(curr.assignee || 'Unassigned')}</div>
-                </div>
-              </div>
-              <div class="col-sm-3">
-                <div class="p-2 border rounded ${curr.isOverdue ? 'bg-danger-subtle border-danger' : 'bg-light'} text-center">
-                  <div class="text-muted" style="font-size: 0.7rem;">SLA STATE</div>
-                  <div class="fw-semibold ${curr.isOverdue ? 'text-danger' : 'text-dark'}" style="font-size: 0.8rem;">${esc(curr.slaState || 'On Track')}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 3. Actions Taken & 4. Outstanding Actions -->
-          <div class="row g-3 mb-4">
-            <div class="col-md-6">
-              <div class="p-3 border rounded h-100 bg-white">
-                <div class="meta-label mb-2 text-uppercase fw-bold text-dark" style="font-size: 0.72rem;">
-                  <i class="bi bi-check2-circle text-success me-1"></i>3. Actions Taken (History)
-                </div>
-                <ul class="mb-0 ps-3 small">
-                  ${actionsHtml}
-                </ul>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="p-3 border rounded h-100 bg-white">
-                <div class="meta-label mb-2 text-uppercase fw-bold text-dark" style="font-size: 0.72rem;">
-                  <i class="bi bi-hourglass-split text-warning me-1"></i>4. Outstanding Actions
-                </div>
-                <ul class="mb-0 ps-3 small">
-                  ${outstandingHtml}
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <!-- 5. Timeline of Milestones -->
-          <div class="mb-4">
-            <div class="meta-label mb-2 text-uppercase text-dark fw-bold" style="font-size: 0.72rem;">
-              <i class="bi bi-calendar-event me-1"></i>5. Chronological Milestones
-            </div>
-            <div class="p-3 border rounded bg-white">
-              ${timelineHtml}
-            </div>
-          </div>
-
-          <!-- 6. Supervisor Attention & 7. Data Gaps -->
           <div class="row g-3">
-            <div class="col-md-6">
-              <div class="p-3 border rounded h-100 bg-warning-subtle border-warning-subtle">
-                <div class="meta-label mb-2 text-uppercase fw-bold text-dark" style="font-size: 0.72rem;">
-                  <i class="bi bi-bell-fill text-warning me-1"></i>6. Supervisor Attention Items
-                </div>
-                ${supervisorHtml}
+            <div class="col-md-7">
+              <div class="text-muted fw-semibold small text-uppercase mb-1" style="font-size: 0.7rem;">Actions Recorded</div>
+              <ul class="ps-3 mb-3 small text-secondary">
+                ${actionsHtml}
+              </ul>
+
+              <div class="text-muted fw-semibold small text-uppercase mb-1" style="font-size: 0.7rem;">Timeline</div>
+              <div class="mb-2">
+                ${timelineHtml}
               </div>
             </div>
-            <div class="col-md-6">
-              <div class="p-3 border rounded h-100 bg-light">
-                <div class="meta-label mb-2 text-uppercase fw-bold text-dark" style="font-size: 0.72rem;">
-                  <i class="bi bi-question-circle text-secondary me-1"></i>7. Documented Data Gaps
-                </div>
-                <ul class="mb-0 ps-3 small">
-                  ${dataGapsHtml}
-                </ul>
-              </div>
+
+            <div class="col-md-5">
+              <div class="text-muted fw-semibold small text-uppercase mb-1" style="font-size: 0.7rem;">Pending Actions</div>
+              <ul class="ps-3 mb-3 small text-secondary">
+                ${outstandingHtml}
+              </ul>
+
+              ${Array.isArray(s.supervisorAttention) && s.supervisorAttention.length > 0 && !s.supervisorAttention[0].includes('No supervisor') ? `
+              <div class="p-2 rounded bg-warning-subtle text-dark mb-2">
+                <div class="fw-semibold mb-1 small"><i class="bi bi-info-circle me-1"></i>Attention Needed</div>
+                ${supervisorHtml}
+              </div>` : ''}
+
+              ${Array.isArray(s.dataGaps) && s.dataGaps.length > 0 && !s.dataGaps[0].includes('No critical') ? `
+              <div class="text-muted fw-semibold small text-uppercase mb-1" style="font-size: 0.7rem;">Missing Details</div>
+              <ul class="ps-3 mb-0 small text-muted">
+                ${dataGapsHtml}
+              </ul>` : ''}
             </div>
           </div>
         </div>
 
-        <!-- Card Footer: Disclaimer -->
-        <div class="card-footer bg-light py-2 px-3 border-top d-flex align-items-center justify-content-between flex-wrap gap-2 text-muted" style="font-size: 0.75rem;">
-          <div class="d-flex align-items-center gap-1">
-            <i class="bi bi-shield-check text-success"></i>
-            <span><strong>Human Verification Notice:</strong> Automatically summarized with ${esc(meta.model || 'Gemini AI')}. Primary database records remain the authoritative source.</span>
-          </div>
-          <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.72rem;" onclick="generateIncidentSummary('${esc(ticketId)}')">
-            <i class="bi bi-arrow-clockwise me-1"></i>Regenerate
-          </button>
+        <div class="card-footer bg-white py-1 px-3 border-top text-muted d-flex justify-content-between align-items-center" style="font-size: 0.72rem;">
+          <span>Summary generated from recorded history. Verify critical items with the log.</span>
+          <button type="button" class="btn btn-sm btn-link text-secondary p-0 text-decoration-none" onclick="generateIncidentSummary('${esc(ticketId)}')">Refresh</button>
         </div>
       </div>
     `;
 
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>Regenerate AI Summary';
+      btn.innerHTML = '<i class="bi bi-sparkles me-1"></i>Summary';
     }
   } catch (err) {
-    console.error('Incident summary client error:', err);
+    console.error('Incident summary error:', err);
     container.innerHTML = `
-      <div class="alert alert-danger d-flex align-items-center justify-content-between p-3 mb-0" role="alert">
-        <div class="d-flex align-items-center gap-2">
-          <i class="bi bi-wifi-off fs-5"></i>
-          <div><strong>Network Error:</strong> Unable to communicate with the server. Please check your connection.</div>
-        </div>
-        <button type="button" class="btn btn-sm btn-outline-danger" onclick="generateIncidentSummary('${esc(ticketId)}')">
-          <i class="bi bi-arrow-clockwise me-1"></i>Retry
-        </button>
+      <div class="alert alert-danger p-2 mb-0 small d-flex justify-content-between align-items-center" role="alert">
+        <div><i class="bi bi-wifi-off me-1"></i>Unable to connect to server. Please try again.</div>
+        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="generateIncidentSummary('${esc(ticketId)}')">Retry</button>
       </div>
     `;
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = '<i class="bi bi-stars me-1"></i>Generate AI Summary';
+      btn.innerHTML = '<i class="bi bi-sparkles me-1"></i>Summary';
     }
   }
 }
